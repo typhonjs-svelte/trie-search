@@ -51,7 +51,7 @@ export function run({ Module, chai })
 
          ts.add(item);
 
-         it('add(\'blah\') should build map of nodes', () =>
+         it(`add('blah') should build map of nodes`, () =>
          {
             expect(ts.root['b']).to.exist;
             expect(ts.root['b']['l']).to.exist;
@@ -59,7 +59,7 @@ export function run({ Module, chai })
             expect(ts.root['b']['l']['a']['h']).to.exist;
          });
 
-         it('search(\'blah\') for each subkey should work', () =>
+         it(`search('blah') for each subkey should work`, () =>
          {
             expect(ts.search('b')[0]).to.equal(item);
             expect(ts.search('bl')[0]).to.equal(item);
@@ -77,7 +77,7 @@ export function run({ Module, chai })
 
          ts.addAll(items);
 
-         it('search(\'blah\') for each subkey should work', () =>
+         it(`search('blah') for each subkey should work`, () =>
          {
             expect(ts.search('b')[0]).to.equal(items[1]);
             expect(ts.search('ba')[0]).to.equal(items[1]);
@@ -108,7 +108,7 @@ export function run({ Module, chai })
 
          ts.add(item);
 
-         it('add(\'1234567890\') should build map of nodes', () =>
+         it(`add('1234567890') should build map of nodes`, () =>
          {
             expect(ts.root['1']).to.exist;
             expect(ts.root['1']['2']).to.exist;
@@ -116,7 +116,7 @@ export function run({ Module, chai })
             expect(ts.root['1']['2']['3']['4']).to.exist;
          });
 
-         it('search(\'1234567890\') for each subkey should work', () =>
+         it(`search('1234567890') for each sub-key should work`, () =>
          {
             expect(ts.search('1')[0]).to.equal(item);
             expect(ts.search('12')[0]).to.equal(item);
@@ -142,14 +142,14 @@ export function run({ Module, chai })
 
          ts.add(item);
 
-         it('add(\'hello world\') should build map of nodes', () =>
+         it(`add('hello world') should build map of nodes`, () =>
          {
             expect(ts.root.h.e.l.l.o).to.exist;
             expect(ts.root.h.e.l.l.o[' ']).to.exist;
             expect(ts.root.h.e.l.l.o[' '].w.o.r.l.d).to.exist;
          });
 
-         it('search(\'hello world\') for each subkey should work', () =>
+         it(`search('hello world') for each subkey should work`, () =>
          {
             expect(ts.search('h')[0]).to.equal(item);
             expect(ts.search('he')[0]).to.equal(item);
@@ -179,23 +179,23 @@ export function run({ Module, chai })
          ts.add(item3);
          ts.add(item4);
 
-         it('search(\'the quick\') should return all entries', () => expect(ts.search('the quick').length).to.equal(3));
+         it(`search('the quick') should return all entries`, () => expect(ts.search('the quick').length).to.equal(3));
 
-         it('search(\'the brown\') should return 2 entries', () => expect(ts.search('the brown').length).to.equal(2));
+         it(`search('the brown') should return 2 entries`, () => expect(ts.search('the brown').length).to.equal(2));
 
-         it('search(\'the fox\') should return 3 entries', () => expect(ts.search('the fox').length).to.equal(3));
+         it(`search('the fox') should return 3 entries`, () => expect(ts.search('the fox').length).to.equal(3));
 
-         it('search(\'fox brown\') should return 1 entry', () => expect(ts.search('fox brown').length).to.equal(1));
+         it(`search('fox brown') should return 1 entry`, () => expect(ts.search('fox brown').length).to.equal(1));
 
-         it('search(\'brown fox\') should return 1 entry', () => expect(ts.search('brown fox').length).to.equal(1));
+         it(`search('brown fox') should return 1 entry`, () => expect(ts.search('brown fox').length).to.equal(1));
 
-         it('search(\'brown f\') should return 2 entry, ignoring the shortness of the second word',
+         it(`search('brown f') should return 2 entry, ignoring the shortness of the second word`,
           () => expect(ts.search('brown f').length).to.equal(2));
 
-         it('search(\'br f\') should return 1 entry, ignoring the shortness of the second word',
+         it(`search('br f') should return 1 entry, ignoring the shortness of the second word`,
           () => expect(ts.search('br f').length).to.equal(2));
 
-         it('search(\'qui b c d e f g h\') should return 3 entries, ignoring the shortness of all subsequent words, ' +
+         it(`search('qui b c d e f g h') should return 3 entries, ignoring the shortness of all subsequent words, ` +
           'because the minimum length has not been met for them',
            () => expect(ts.search('qui b c d e f g h').length).to.equal(3));
       });
@@ -213,7 +213,7 @@ export function run({ Module, chai })
          ts.add(item3);
          ts.add(item4);
 
-         it('search([\'the brown\', \'quick\']) should return 3 entries',
+         it(`search(['the brown', 'quick']) should return 3 entries`,
           () => expect(ts.search(['the brown', 'quick']).length).to.equal(3));
       });
 
@@ -264,21 +264,21 @@ export function run({ Module, chai })
          ts.add(item3);
          ts.add(item4);
 
-         it('search(\'the quick\') should return all entries', () => expect(ts.search('the quick').length).to.equal(4));
+         it(`search('the quick') should return all entries`, () => expect(ts.search('the quick').length).to.equal(4));
 
-         it('search(\'the brown\') should return all entries', () => expect(ts.search('the brown').length).to.equal(4));
+         it(`search('the brown') should return all entries`, () => expect(ts.search('the brown').length).to.equal(4));
 
-         it('search(\'the fox\') should return 3 entries', () => expect(ts.search('the fox').length).to.equal(3));
+         it(`search('the fox') should return 3 entries`, () => expect(ts.search('the fox').length).to.equal(3));
 
-         it('search(\'fox brown\') should return 3 entries', () => expect(ts.search('fox brown').length).to.equal(3));
+         it(`search('fox brown') should return 3 entries`, () => expect(ts.search('fox brown').length).to.equal(3));
 
-         it('search(\'brown fox\') should return 3 entries', () => expect(ts.search('brown fox').length).to.equal(3));
+         it(`search('brown fox') should return 3 entries`, () => expect(ts.search('brown fox').length).to.equal(3));
 
-         it('search(\'brown z\') should return all entries', () => expect(ts.search('brown z').length).to.equal(4));
+         it(`search('brown z') should return all entries`, () => expect(ts.search('brown z').length).to.equal(4));
 
-         it('search(\'br f\') should return all entries', () => expect(ts.search('br f').length).to.equal(4));
+         it(`search('br f') should return all entries`, () => expect(ts.search('br f').length).to.equal(4));
 
-         it('search(\'jum b c d e f g h\') should return 2 entries, ignoring the shortness of all subsequent words',
+         it(`search('jum b c d e f g h') should return 2 entries, ignoring the shortness of all subsequent words`,
           () => expect(ts.search('jum b c d e f g h').length).to.equal(2));
       });
 
@@ -295,23 +295,23 @@ export function run({ Module, chai })
          ts.add(item3);
          ts.add(item4);
 
-         it('search(\'the quick\') should return all 4 entries',
+         it(`search('the quick') should return all 4 entries`,
           () => expect(ts.search('the quick').length).to.equal(4));
 
-         it('search(\'the brown\') should return all 4 entries',
+         it(`search('the brown') should return all 4 entries`,
           () => expect(ts.search('the brown').length).to.equal(4));
 
-         it('search(\'the fox\') should return 3 entries', () => expect(ts.search('the fox').length).to.equal(3));
+         it(`search('the fox') should return 3 entries`, () => expect(ts.search('the fox').length).to.equal(3));
 
-         it('search(\'fox brown\') should return 3 entries', () => expect(ts.search('fox brown').length).to.equal(3));
+         it(`search('fox brown') should return 3 entries`, () => expect(ts.search('fox brown').length).to.equal(3));
 
-         it('search(\'brown fox\') should return 3 entries', () => expect(ts.search('brown fox').length).to.equal(3));
+         it(`search('brown fox') should return 3 entries`, () => expect(ts.search('brown fox').length).to.equal(3));
 
-         it('search(\'brown z\') should return 4 entries', () => expect(ts.search('brown z').length).to.equal(4));
+         it(`search('brown z') should return 4 entries`, () => expect(ts.search('brown z').length).to.equal(4));
 
-         it('search(\'br f\') should return all entries', () => expect(ts.search('br f').length).to.equal(4));
+         it(`search('br f') should return all entries`, () => expect(ts.search('br f').length).to.equal(4));
 
-         it('search(\'jum b c d e f g h\') should return 2 entries, ignoring the shortness of all subsequent words',
+         it(`search('jum b c d e f g h') should return 2 entries, ignoring the shortness of all subsequent words`,
           () => expect(ts.search('jum b c d e f g h').length).to.equal(2));
       });
 
@@ -322,7 +322,7 @@ export function run({ Module, chai })
 
          ts.add(item);
 
-         it('add(\'blah\') should build map of nodes', () =>
+         it(`add('blah') should build map of nodes`, () =>
          {
             expect(ts.root['b']).to.exist;
             expect(ts.root['b']['l']).to.exist;
@@ -330,7 +330,7 @@ export function run({ Module, chai })
             expect(ts.root['b']['l']['a']['h']).to.exist;
          });
 
-         it('search(\'blah\') and search(\'whatever\') for each subkey should work', () =>
+         it(`search('blah') and search('whatever') for each subkey should work`, () =>
          {
             expect(ts.search('b')[0]).to.equal(item);
             expect(ts.search('bl')[0]).to.equal(item);
@@ -338,14 +338,14 @@ export function run({ Module, chai })
             expect(ts.search('blah')[0]).to.equal(item);
          });
 
-         it('search(\'whatever\') for each subkey should work', () =>
+         it(`search('whatever') for each subkey should work`, () =>
          {
             expect(ts.search('w')[0]).to.equal(item);
             expect(ts.search('wh')[0]).to.equal(item);
             expect(ts.search('whatever')[0]).to.equal(item);
          });
 
-         it('search(\'yeah\') for each subkey should work', () =>
+         it(`search('yeah') for each subkey should work`, () =>
          {
             expect(ts.search('y')[0]).to.equal(item);
             expect(ts.search('ye')[0]).to.equal(item);
@@ -353,7 +353,7 @@ export function run({ Module, chai })
             expect(ts.search('yeah')[0]).to.equal(item);
          });
 
-         it('search(\'man\') for each subkey should work', () =>
+         it(`search('man') for each subkey should work`, () =>
          {
             expect(ts.search('m')[0]).to.equal(item);
             expect(ts.search('ma')[0]).to.equal(item);
@@ -378,13 +378,13 @@ export function run({ Module, chai })
             expect(ts.root['i']['t']['e']['m']['2']).to.exist;
          });
 
-         it('search(\'i\') should return 2 items', () =>
+         it(`search('i') should return 2 items`, () =>
          {
             expect(ts.search('i').length).to.equal(2);
             expect(ts.search('item').length).to.equal(2);
          });
 
-         it('search(\'item1\') and search(\'item2\') should return 1 item', () =>
+         it(`search('item1') and search('item2') should return 1 item`, () =>
          {
             expect(ts.search('item1').length).to.equal(1);
             expect(ts.search('item2').length).to.equal(1);
@@ -408,15 +408,15 @@ export function run({ Module, chai })
             expect(ts.root['it']['e']['m']['2']).to.exist;
          });
 
-         it('search(\'i\') should return 0 items', () =>
+         it(`search('i') should return 0 items`, () =>
          {
             expect(ts.search('i').length).to.equal(0);
             expect(ts.search('item').length).to.equal(2);
          });
 
-         it('search(\'item\') should return 2 items', () => expect(ts.search('item').length).to.equal(2));
+         it(`search('item') should return 2 items`, () => expect(ts.search('item').length).to.equal(2));
 
-         it('search(\'item1\') and search(\'item2\') should return 1 item', () =>
+         it(`search('item1') and search('item2') should return 1 item`, () =>
          {
             expect(ts.search('item1').length).to.equal(1);
             expect(ts.search('item2').length).to.equal(1);
@@ -444,15 +444,15 @@ export function run({ Module, chai })
             expect(ts.root['45']['6']).to.exist;
          });
 
-         it('search(\'i\') should return 0 items', () =>
+         it(`search('i') should return 0 items`, () =>
          {
             expect(ts.search('i').length).to.equal(0);
             expect(ts.search('item').length).to.equal(2);
          });
 
-         it('search(\'123\') should return 0 items', () => expect(ts.search('123').length).to.equal(0));
+         it(`search('123') should return 0 items`, () => expect(ts.search('123').length).to.equal(0));
 
-         it('search(\'45\') should return 1 items', () => expect(ts.search('456').length).to.equal(1));
+         it(`search('45') should return 1 items`, () => expect(ts.search('456').length).to.equal(1));
       });
 
       describe('search(...) should work with a custom reducer and accumulator', () =>
@@ -470,7 +470,7 @@ export function run({ Module, chai })
          ts.add(item4);
          ts.add(item5);
 
-         it('search(\'robin\', [reducer])', () =>
+         it(`search('robin', [reducer])`, () =>
          {
             const result = ts.search('robin', (_accumulator, phrase, phraseMatches, trie) =>
             {
@@ -493,7 +493,7 @@ export function run({ Module, chai })
             expect(result[1]).to.equal(item5);
          });
 
-         it('search([\'red\', \'robin\'], TrieSearch.UNION_REDUCER)', () =>
+         it(`search(['red', 'robin'], TrieSearch.UNION_REDUCER)`, () =>
          {
             const result = ts.search(['red', 'robin'], TrieSearch.UNION_REDUCER);
 
@@ -501,7 +501,7 @@ export function run({ Module, chai })
             expect(result[0]).to.equal(item1);
          });
 
-         it('search([\'green\'], TrieSearch.UNION_REDUCER)', () =>
+         it(`search(['green'], TrieSearch.UNION_REDUCER)`, () =>
          {
             const result = ts.search(['green'], TrieSearch.UNION_REDUCER);
 
@@ -510,7 +510,7 @@ export function run({ Module, chai })
             expect(result[1]).to.equal(item4);
          });
 
-         it('search(\'green\', TrieSearch.UNION_REDUCER)', () =>
+         it(`search('green', TrieSearch.UNION_REDUCER)`, () =>
          {
             const result = ts.search('green', TrieSearch.UNION_REDUCER);
 
@@ -519,28 +519,28 @@ export function run({ Module, chai })
             expect(result[1]).to.equal(item4);
          });
 
-         it('search(\'blue\', TrieSearch.UNION_REDUCER)', () =>
+         it(`search('blue', TrieSearch.UNION_REDUCER)`, () =>
          {
             const result = ts.search('blue', TrieSearch.UNION_REDUCER);
 
             expect(result.length).to.equal(0);
          });
 
-         it('search(\'am\', TrieSearch.UNION_REDUCER)', () =>
+         it(`search('am', TrieSearch.UNION_REDUCER)`, () =>
          {
             const result = ts.search('am', TrieSearch.UNION_REDUCER);
 
             expect(result.length).to.equal(4);
          });
 
-         it('search([\'owl\', \'card\', \'cock\', \'rob\'], TrieSearch.UNION_REDUCER)', () =>
+         it(`search(['owl', 'card', 'cock', 'rob'], TrieSearch.UNION_REDUCER)`, () =>
          {
             const result = ts.search(['owl', 'card', 'cock', 'rob'], TrieSearch.UNION_REDUCER);
 
             expect(result.length).to.equal(1);
          });
 
-         it('search([\'owl\', \'card\', \'cock\', \'rob\', \'fubar\'], TrieSearch.UNION_REDUCER)', () =>
+         it(`search(['owl', 'card', 'cock', 'rob', 'fubar'], TrieSearch.UNION_REDUCER)`, () =>
          {
             const result = ts.search(['owl', 'card', 'cock', 'rob', 'fubar'], TrieSearch.UNION_REDUCER);
 
@@ -654,7 +654,7 @@ export function run({ Module, chai })
             const item = { someValue: 12345 };
             const item2 = { someValue: 67890 };
 
-            ts.map('It\'sOnlyA_Flesh Wound', item);
+            ts.map(`It'sOnlyA_Flesh Wound`, item);
             ts.map('WhatIsYourFavoriteColor', item2);
 
             expect(ts.search('It')[0]).to.equal(item);
@@ -663,7 +663,7 @@ export function run({ Module, chai })
             expect(ts.search('A')[0]).to.equal(item);
             expect(ts.search('Flesh')[0]).to.equal(item);
             expect(ts.search('Wound')[0]).to.equal(item);
-            expect(ts.search('It\'sOnlyA_Flesh Wound')[0]).to.equal(item);
+            expect(ts.search(`It'sOnlyA_Flesh Wound`)[0]).to.equal(item);
 
             expect(ts.search('What')[0]).to.equal(item2);
             expect(ts.search('Is')[0]).to.equal(item2);

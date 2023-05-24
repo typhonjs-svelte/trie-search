@@ -17,7 +17,7 @@ export function run({ Module, chai })
       {
          const ha = new HashArray(['key'], (type) =>
          {
-            it('Should callback with "construct"', () => assert.equal(type, 'construct'));
+            it(`Should callback with 'construct'`, () => assert.equal(type, 'construct'));
          });
 
          it('Should have a all.length of 0.', () => assert.equal(ha.all.length, 0));
@@ -39,7 +39,7 @@ export function run({ Module, chai })
 
          ha.callback = (type, what) =>
          {
-            it('Should have a "add" callback.', () =>
+            it(`Should have a 'add' callback.`, () =>
             {
                assert.equal(type, 'add');
                assert.strictEqual(what[0], item);
@@ -50,9 +50,9 @@ export function run({ Module, chai })
 
          it('Should have a single item.', () => assert.equal(ha.all.length, 1));
 
-         it('Should map "whatever" to that item.', () => assert.equal(ha.get('whatever'), item));
+         it(`Should map 'whatever' to that item.`, () => assert.equal(ha.get('whatever'), item));
 
-         it('Should not crash on the reserved keyword "constructor".',
+         it(`Should not crash on the reserved keyword 'constructor'.`,
           () => assert.equal(ha.get('constructo'), void 0));
 
          it('Should return true to a collides for a similar object.',
@@ -78,7 +78,7 @@ export function run({ Module, chai })
 
          it('Should have a 2 items.', () => assert.equal(ha.all.length, 2));
 
-         it('Should map "whatever" to both items in proper order.', () =>
+         it(`Should map 'whatever' to both items in proper order.`, () =>
          {
             assert.equal(ha.getAsArray('whatever')[0], item1);
             assert.equal(ha.getAsArray('whatever')[1], item2);
@@ -107,10 +107,10 @@ export function run({ Module, chai })
 
          it('Should have a 1 item.', () => assert.equal(ha.all.length, 1));
 
-         it('Should map "whatever1" to item1 only (first inserted).',
+         it(`Should map 'whatever1' to item1 only (first inserted).`,
           () => assert.equal(ha.getAsArray('whatever1').length, 1));
 
-         it('Should map "whatever2" to item1 only (first inserted).',
+         it(`Should map 'whatever2' to item1 only (first inserted).`,
           () => assert.equal(ha.getAsArray('whatever2').length, 1));
       });
 
@@ -126,7 +126,7 @@ export function run({ Module, chai })
 
          it('Should have a single item.', () => assert.equal(ha.all.length, 1));
 
-         it('Should map "whatever" to that item.', () => assert.equal(ha.get('whatever'), item));
+         it(`Should map 'whatever' to that item.`, () => assert.equal(ha.get('whatever'), item));
       });
 
       describe('add(items) should work with 1 item and multiple keys and key depths.', () =>
@@ -146,7 +146,7 @@ export function run({ Module, chai })
 
          ha.add(item);
 
-         it('Should map "deeeep" to that item.', () => assert.equal(ha.get('deeeep'), item));
+         it(`Should map 'deeeep' to that item.`, () => assert.equal(ha.get('deeeep'), item));
 
          it('Should have the item be the same for all key lookups', () =>
          {
@@ -165,7 +165,7 @@ export function run({ Module, chai })
 
          ha.callback = (type, what) =>
          {
-            it('Should have a "add" callback.', () =>
+            it(`Should have a 'add' callback.`, () =>
             {
                assert.equal(type, 'add');
                assert.strictEqual(what[0], item1);
@@ -179,11 +179,11 @@ export function run({ Module, chai })
 
          it('Should have 3 items', () => assert.equal(ha.all.length, 4));
 
-         it('Should map "whatever" to item1', () => assert.deepEqual(ha.get('whatever'), item1));
+         it(`Should map 'whatever' to item1`, () => assert.deepEqual(ha.get('whatever'), item1));
 
-         it('Should map "whatever2" to item2', () => assert.equal(ha.get('whatever2'), item2));
+         it(`Should map 'whatever2' to item2`, () => assert.equal(ha.get('whatever2'), item2));
 
-         it('Should map "whatever3" to item3', () => assert.deepEqual(ha.get('whatever3'), [item3, item4]));
+         it(`Should map 'whatever3' to item3`, () => assert.deepEqual(ha.get('whatever3'), [item3, item4]));
       });
 
       describe('removeByKey(keys) should work with 1 item', () =>
@@ -238,13 +238,13 @@ export function run({ Module, chai })
          const item3 = { key: 'whatever3' };
          const item4 = { key: 'whatever3' };
 
-         console.log("START");
+         console.log('START');
 
          ha.add(item1, item2, item3, item4);
 
          ha.callback = (type, what) =>
          {
-            it('Should have a "removeByKey" callback.', () =>
+            it(`Should have a 'removeByKey' callback.`, () =>
             {
                assert.equal(type, 'removeByKey');
                assert.strictEqual(what[0], item3);
@@ -276,7 +276,7 @@ export function run({ Module, chai })
 
          ha.callback = (type, what) =>
          {
-            it('Should have a "remove" callback.', () =>
+            it(`Should have a 'remove' callback.`, () =>
             {
                assert.equal(type, 'remove');
                assert.strictEqual(what[0], item);
@@ -304,7 +304,7 @@ export function run({ Module, chai })
 
          ha.callback = (type, what) =>
          {
-            it('Should have a "remove" callback.', () =>
+            it(`Should have a 'remove' callback.`, () =>
             {
                assert.equal(type, 'remove');
                assert.strictEqual(what[0], item2);
@@ -337,7 +337,7 @@ export function run({ Module, chai })
 
          ha.callback = (type, what) =>
          {
-            it('Should have a "remove" callback.', () =>
+            it(`Should have a 'remove' callback.`, () =>
             {
                assert.equal(type, 'remove');
                assert.strictEqual(what[0], item1);
@@ -366,7 +366,7 @@ export function run({ Module, chai })
 
          ha.callback = (type, what) =>
          {
-            it('Should have a "remove" callback.', () =>
+            it(`Should have a 'remove' callback.`, () =>
             {
                assert.equal(type, 'remove');
                assert.strictEqual(what[0], item1);
