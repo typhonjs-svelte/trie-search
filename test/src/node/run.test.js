@@ -1,6 +1,6 @@
 import fs               from 'fs-extra';
 
-import * as Module      from '../../../src/HashArray.js';
+import * as Module      from '../../../src/index.js';
 
 import TestSuiteRunner  from '../runner/TestSuiteRunner.js';
 

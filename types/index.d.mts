@@ -28,7 +28,7 @@ declare class HashArray {
     getAll(keys: any): any[];
     getAsArray(key: any): any;
     sample(count: any, keys: any): any[];
-    has(key: any): boolean;
+    has(key: any): any;
     collides(item: any): boolean;
     hasMultiple(key: any): boolean;
     removeByKey(...args: any[]): HashArray;
@@ -51,4 +51,79 @@ type HashArrayOptions = {
     ignoreDuplicates?: boolean;
 };
 
-export { HashArray, HashArrayOptions };
+/**
+ * @template T
+ */
+declare class TrieSearch<T> {
+    static UNION_REDUCER(accumulator: any, phrase: any, matches: any, trie: any): any;
+    /**
+     * @param {Array} [keyFields] -
+     *
+     * @param {TrieSearchOptions} [options] - Options.
+     */
+    constructor(keyFields?: any[], options?: TrieSearchOptions);
+    get cache(): HashArray;
+    get keyFields(): any[];
+    get root(): {};
+    get size(): number;
+    add(obj: any, customKeys: any): void;
+    addFromObject(obj: any, valueField: any): void;
+    addAll(arr: any, customKeys: any): void;
+    clearCache(): void;
+    getId(item: any): any;
+    map(key: any, value: any): void;
+    reset(): void;
+    search(phrases: any, reducer: any, limit: any): any;
+    #private;
+}
+type TrieSearchOptions = {
+    /**
+     * -
+     */
+    cache?: boolean;
+    /**
+     * -
+     */
+    expandRegexes?: [{
+        regex: RegExp;
+        alternate: string;
+    }];
+    /**
+     * -
+     */
+    idFieldOrFunction?: string | (() => string);
+    /**
+     * -
+     */
+    ignoreCase?: boolean;
+    /**
+     * -
+     */
+    insertFullUnsplitKey?: boolean;
+    /**
+     * -
+     */
+    keepAll?: boolean;
+    /**
+     * -
+     */
+    keepAllKey?: string;
+    /**
+     * -
+     */
+    maxCacheSize?: number;
+    /**
+     * -
+     */
+    min?: number;
+    /**
+     * -
+     */
+    splitOnRegEx?: RegExp;
+    /**
+     * -
+     */
+    splitOnGetRegEx?: RegExp;
+};
+
+export { HashArray, HashArrayOptions, TrieSearch, TrieSearchOptions };
