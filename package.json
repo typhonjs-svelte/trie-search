@@ -1,0 +1,32 @@
+{
+  "name": "@typhonjs-svelte/trie-search",
+  "version": "0.0.0",
+  "description": "Provides a trie-search and hash array data structures w/ Svelte support.",
+  "license": "MPL-2.0",
+  "type": "module",
+  "author": "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)",
+  "contributors": [
+    "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./types/index.d.mts",
+      "import": "./src/index.js"
+    }
+  },
+  "devDependencies": {
+    "@typhonjs-build-test/node" : "^0.0.9"
+  },
+  "files": [
+    "/src",
+    "/types"
+  ],
+  "browserslist": [">5%", "not IE 11"],
+  "scripts": {
+    "eslint": "eslint .",
+    "prepublishOnly": "npm run eslint && npm run types && npm run test-node",
+    "test-node": "c8 --exclude-after-remap=true --reporter=lcov --reporter=text-summary mocha -colors \"test/src/node/**/*.test.js\" --timeout 16000",
+    "types": "node -e \"import('@typhonjs-build-test/esm-d-ts').then(module => { module.generateDTS({ input: './src/index.js', output: './types/index.d.mts' }); });\""
+  }
+}
