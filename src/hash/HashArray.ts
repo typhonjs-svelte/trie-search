@@ -94,6 +94,29 @@ export class HashArray<T extends Object>
    }
 
    // -----------------------------------
+   // Cloning
+   // -----------------------------------
+
+   /**
+    * Clones this HashArray.
+    *
+    * @param {object}   [options] - Optional parameters.
+    *
+    * @param {(type: string, what?: any) => void}  [options.callback] - Callback to assign to cloned HashArray.
+    *
+    * @param {boolean}  [options.items=true] - When false the items are not cloned / KeyFields are.
+    */
+   clone({ callback, items = true }: { callback?: (type: string, what?: any) => void, items?: boolean } = {}):
+    HashArray<T>
+   {
+      const n = new HashArray<T>(klona(this.#keyFields), callback ? callback : this.#callback);
+
+      if (!items) { n.addAll([...this.#list]); }
+
+      return n;
+   }
+
+   // -----------------------------------
    // Intersection, union, etc.
    // -----------------------------------
 
@@ -142,6 +165,26 @@ export class HashArray<T extends Object>
       }
 
       return ret;
+   }
+
+   /**
+    * @param {number}   count - How many items to sample.
+    *
+    * @param {Key} [key] - The Key for item(s) to sample.
+    *
+    * @returns {T[]} Random subset of items.
+    * @see http://en.wikipedia.org/wiki/Image_(mathematics)
+    */
+   sample(count: number, key?: Key): T[]
+   {
+      const image: T[] = key ? this.getAll(key) : this.#list;
+      const result: T[] = [];
+
+      const rand = HashArray.#getUniqueRandomIntegers(count, 0, image.length - 1);
+
+      for (let i = rand.length; --i >= 0;) { result.push(image[rand[i]]); }
+
+      return result;
    }
 
    // -----------------------------------
@@ -194,26 +237,6 @@ export class HashArray<T extends Object>
    getAsArray(key: string): T[]
    {
       return this.#map.get(key) ?? [];
-   }
-
-   /**
-    * @param {number}   count - How many items to sample.
-    *
-    * @param {Key} [key] - The Key for item(s) to sample.
-    *
-    * @returns {T[]} Random subset of items.
-    * @see http://en.wikipedia.org/wiki/Image_(mathematics)
-    */
-   sample(count: number, key?: Key): T[]
-   {
-      const image: T[] = key ? this.getAll(key) : this.#list;
-      const result: T[] = [];
-
-      const rand = HashArray.#getUniqueRandomIntegers(count, 0, image.length - 1);
-
-      for (let i = rand.length; --i >= 0;) { result.push(image[rand[i]]); }
-
-      return result;
    }
 
    // -----------------------------------
@@ -506,29 +529,6 @@ export class HashArray<T extends Object>
    valuesFlat(): IterableIterator<T>
    {
       return this.#list.values();
-   }
-
-   // -----------------------------------
-   // Cloning
-   // -----------------------------------
-
-   /**
-    * Clones this HashArray.
-    *
-    * @param {object}   [options] - Optional parameters.
-    *
-    * @param {(type: string, what?: any) => void}  [options.callback] - Callback to assign to cloned HashArray.
-    *
-    * @param {boolean}  [options.items=true] - When false the items are not cloned / KeyFields are.
-    */
-   clone({ callback, items = true }: { callback?: (type: string, what?: any) => void, items?: boolean } = {}):
-    HashArray<T>
-   {
-      const n = new HashArray<T>(klona(this.#keyFields), callback ? callback : this.#callback);
-
-      if (!items) { n.addAll([...this.#list]); }
-
-      return n;
    }
 
    // -----------------------------------
