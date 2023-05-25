@@ -1,4 +1,4 @@
-import { TrieSearch } from '../../src/TrieSearch';
+import { TrieSearch } from '../../src';
 
 describe('TrieSearch', () =>
 {
@@ -222,16 +222,16 @@ describe('TrieSearch', () =>
       {
          const f1 = ts.search('the brown');
 
-         expect(ts.cache.all.length).to.equal(1);
-         expect(ts.cache.all.length).to.equal(1);
+         expect(ts.cache.sizeFlat).to.equal(1);
+         expect(ts.cache.sizeFlat).to.equal(1);
 
          ts.search('the quick');
 
-         expect(ts.cache.all.length).to.equal(2);
+         expect(ts.cache.sizeFlat).to.equal(2);
 
          ts.search('the fox');
 
-         expect(ts.cache.all.length).to.equal(2);
+         expect(ts.cache.sizeFlat).to.equal(2);
 
          const f2 = ts.search('the brown'); // This should return different array.
 

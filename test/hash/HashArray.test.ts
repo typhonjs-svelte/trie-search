@@ -15,11 +15,11 @@ describe('HashArray', () =>
          it(`Should callback with 'construct'`, () => assert.equal(type, 'construct'));
       });
 
-      it('Should have a all.length of 0.', () => assert.equal(ha.all.length, 0));
+      it('Should have a size of 0.', () => assert.equal(ha.sizeFlat, 0));
 
       it('Should have a map with no keys.', () =>
       {
-         for (const key in ha.map) { assert.equal(true, false); } // eslint-disable-line no-unused-vars
+         for (const key of ha.keys()) { assert.equal(true, false); } // eslint-disable-line no-unused-vars
       });
 
       const ha2 = new HashArray('key');
@@ -45,7 +45,7 @@ describe('HashArray', () =>
 
       ha.add(item);
 
-      it('Should have a single item.', () => assert.equal(ha.all.length, 1));
+      it('Should have a single item.', () => assert.equal(ha.sizeFlat, 1));
 
       it(`Should map 'whatever' to that item.`, () => assert.equal(ha.get('whatever'), item));
 
@@ -74,7 +74,7 @@ describe('HashArray', () =>
 
       ha.add(item1, item2);
 
-      it('Should have a 2 items.', () => assert.equal(ha.all.length, 2));
+      it('Should have a 2 items.', () => assert.equal(ha.sizeFlat, 2));
 
       it(`Should map 'whatever' to both items in proper order.`, () =>
       {
@@ -103,7 +103,7 @@ describe('HashArray', () =>
 
       ha.add(item1, item2);
 
-      it('Should have a 1 item.', () => assert.equal(ha.all.length, 1));
+      it('Should have a 1 item.', () => assert.equal(ha.sizeFlat, 1));
 
       it(`Should map 'whatever1' to item1 only (first inserted).`,
        () => assert.equal(ha.getAsArray('whatever1').length, 1));
@@ -122,7 +122,7 @@ describe('HashArray', () =>
       ha.add(item);
       ha.add(item);
 
-      it('Should have a single item.', () => assert.equal(ha.all.length, 1));
+      it('Should have a single item.', () => assert.equal(ha.sizeFlat, 1));
 
       it(`Should map 'whatever' to that item.`, () => assert.equal(ha.get('whatever'), item));
    });
@@ -177,7 +177,7 @@ describe('HashArray', () =>
 
       ha.add(item1, item2, item3, item4);
 
-      it('Should have 3 items', () => assert.equal(ha.all.length, 4));
+      it('Should have 3 items', () => assert.equal(ha.sizeFlat, 4));
 
       it(`Should map 'whatever' to item1`, () => assert.deepEqual(ha.get('whatever'), item1));
 
@@ -194,11 +194,11 @@ describe('HashArray', () =>
       ha.add(item);
       ha.removeByKey('whatever');
 
-      it('Should have no items after remove by key', () => assert.equal(ha.all.length, 0));
+      it('Should have no items after remove by key', () => assert.equal(ha.sizeFlat, 0));
 
       it('Should have a map with no keys.', () =>
       {
-         for (const key in ha.map) { assert.equal(key, void 0); }
+         for (const key of ha.keys()) { assert.equal(key, void 0); }
       });
    });
 
@@ -222,11 +222,11 @@ describe('HashArray', () =>
 
       ha.removeByKey('deeeeep');
 
-      it('Should have no items after remove by key', () => assert.equal(ha.all.length, 0));
+      it('Should have no items after remove by key', () => assert.equal(ha.sizeFlat, 0));
 
       it('Should have a map with no keys.', () =>
       {
-         for (const key in ha.map) { assert.equal(key, void 0); }
+         for (const key of ha.keys()) { assert.equal(key, void 0); }
       });
    });
 
@@ -254,7 +254,7 @@ describe('HashArray', () =>
 
       ha.removeByKey('whatever3');
 
-      it('Should have 2 items after remove by key', () => assert.equal(ha.all.length, 2));
+      it('Should have 2 items after remove by key', () => assert.equal(ha.sizeFlat, 2));
 
       it('Should have no key for removed item (has)', () => assert.equal(ha.has('whatever3'), false));
 
@@ -287,11 +287,11 @@ describe('HashArray', () =>
 
       ha.remove(item);
 
-      it('Should have no items after remove', () => assert.equal(ha.all.length, 0));
+      it('Should have no items after remove', () => assert.equal(ha.sizeFlat, 0));
 
       it('Should have a map with no keys.', () =>
       {
-         for (const key in ha.map) { assert.equal(key, void 0); }
+         for (const key of ha.keys()) { assert.equal(key, void 0); }
       });
    });
 
@@ -317,7 +317,7 @@ describe('HashArray', () =>
 
       ha.remove(item2);
 
-      it('Should have 2 items after remove by key', () => assert.equal(ha.all.length, 2));
+      it('Should have 2 items after remove by key', () => assert.equal(ha.sizeFlat, 2));
 
       it('Should have no key for removed item (has)', () => assert.equal(ha.has('whatever2'), false));
 
@@ -344,11 +344,11 @@ describe('HashArray', () =>
             assert.strictEqual(what[2], item3);
          });
 
-         it('Should have 0 items after removeAll', () => assert.equal(ha.all.length, 0));
+         it('Should have 0 items after removeAll', () => assert.equal(ha.sizeFlat, 0));
 
          it('Should have a map with no keys.', () =>
          {
-            for (const key in ha.map) { assert.equal(key, void 0); }
+            for (const key of ha.keys()) { assert.equal(key, void 0); }
          });
       };
 
@@ -371,7 +371,7 @@ describe('HashArray', () =>
 
       ha.add(item1, item2, item3, item3);
 
-      it('Length should be 3', () => assert(ha.all.length === 3, `Length was not 3, was ${ha.all.length}`));
+      it('Length should be 3', () => assert(ha.sizeFlat === 3, `Length was not 3, was ${ha.sizeFlat}`));
    });
 
    describe('add should not allow adding of duplicate objects (multi key)', () =>
@@ -383,7 +383,7 @@ describe('HashArray', () =>
 
       ha.add(item1, item2, item3, item3);
 
-      it('Length should be 3', () => assert(ha.all.length === 3, `Length was not 3, was ${ha.all.length}`));
+      it('Length should be 3', () => assert(ha.sizeFlat === 3, `Length was not 3, was ${ha.sizeFlat}`));
    });
 
    describe('intersection(ha) should work with simple single-key hasharrays', () =>
@@ -403,7 +403,7 @@ describe('HashArray', () =>
 
       it('Unioned hasharray should contain item1 and item3 only', () =>
       {
-         assert(intersection.all.length === 2);
+         assert(intersection.sizeFlat === 2);
          assert(intersection.collides(item1));
          assert(!intersection.collides(item2));
          assert(intersection.collides(item3));
@@ -632,14 +632,14 @@ describe('HashArray', () =>
 
       it('should return a new HashArray with the right length of items', () =>
       {
-         assert.equal(ha.filter('*', (item) => item.data.speed === 100).all.length, 1);
+         assert.equal(ha.filter('*', (item) => item.data.speed === 100).sizeFlat, 1);
       });
 
       it('should work with a key for the callback',
-       () => assert.equal(ha.filter('airplane', ['data', 'mobile']).all.length, 2));
+       () => assert.equal(ha.filter('airplane', ['data', 'mobile']).sizeFlat, 2));
 
       it('should work with a key for the callback for a non-existent key',
-       () => assert.equal(ha.filter('airplane', 'does not exist').all.length, 0));
+       () => assert.equal(ha.filter('airplane', 'does not exist').sizeFlat, 0));
    });
 
    describe('methods without a standard return should return this.', () =>

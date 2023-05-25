@@ -1,6 +1,8 @@
+import { klona }  from 'klona/json';
+
 import type {
    Key,
-   KeyFields } from './types';
+   KeyFields }    from '../types';
 
 /**
  * HashArray is a data structure that combines the best feature of a hash (O(1) retrieval) and an array
@@ -18,7 +20,7 @@ export class HashArray<T extends Object>
 
    readonly #options: HashArrayOptions;
 
-   #map: { [key: string]: T[] } = {};
+   readonly #map: Map<string, T[]> = new Map<string, T[]>();
 
    /**
     * @param {string | KeyFields} [keyFields] -
@@ -40,27 +42,27 @@ export class HashArray<T extends Object>
    }
 
    /**
-    * @returns {T[]} All items.
-    */
-   get all(): T[]
-   {
-      return this.#list;
-   }
-
-   /**
-    * @returns {KeyFields} The current key fields.
+    * @returns {KeyFields} A clone of the current key fields.
     */
    get keyFields(): KeyFields
    {
-      return this.#keyFields;
+      return klona(this.#keyFields);
    }
 
    /**
-    * @returns {{ [key: string]: T[] }} The item map.
+    * @returns {number} The mapped size; number of keys in HashArray.
     */
-   get map(): { [key: string]: T[] }
+   get size()
    {
-      return this.#map;
+      return this.#map.size;
+   }
+
+   /**
+    * @returns {number} The flattened size; number of items in HashArray.
+    */
+   get sizeFlat()
+   {
+      return this.#list.length;
    }
 
    /**
@@ -155,9 +157,11 @@ export class HashArray<T extends Object>
     */
    get(key: string): T | T[]
    {
-      if (!this.has(key)) { return; }
+      const items = this.#map.get(key);
 
-      return (!Array.isArray(this.#map[key]) || this.#map[key].length !== 1) ? this.#map[key] : this.#map[key][0];
+      if (!items) { return; }
+
+      return items.length === 1 ? items[0] : items;
    }
 
    /**
@@ -173,11 +177,11 @@ export class HashArray<T extends Object>
 
       if (key[0] === '*') { return this.#list; }
 
-      const res = new HashArray<T>(this.#keyFields);
+      const results = new HashArray<T>(this.#keyFields);
 
-      for (const index in key) { res.add(...this.getAsArray(key[index])); }
+      for (const index in key) { results.addAll(this.getAsArray(key[index])); }
 
-      return res.#list;
+      return results.#list;
    }
 
    /**
@@ -189,7 +193,7 @@ export class HashArray<T extends Object>
     */
    getAsArray(key: string): T[]
    {
-      return this.#map[key] ?? [];
+      return this.#map.get(key) ?? [];
    }
 
    /**
@@ -242,7 +246,7 @@ export class HashArray<T extends Object>
     */
    has(key: string): boolean
    {
-      return Object.prototype.hasOwnProperty.call(this.#map, key);
+      return this.#map.has(key);
    }
 
    // -----------------------------------
@@ -257,59 +261,10 @@ export class HashArray<T extends Object>
    clear(): this
    {
       const old = [...this.#list];
-      this.#map = {};
+      this.#map.clear();
       this.#list.length = 0;
 
       if (this.#callback) { this.#callback('clear', old); }
-
-      return this;
-   }
-
-   /**
-    * Removes item by the given keys.
-    *
-    * @param {...string}   keys - Keys to remove.
-    *
-    * @returns {HashArray<T>} This instance.
-    */
-   removeByKey(...keys: string[]): this
-   {
-      let removed: T[] = [];
-
-      for (let i = keys.length; --i >= 0;)
-      {
-         const key = keys[i];
-         const items = this.#map[key].concat();
-
-         if (items)
-         {
-            removed = removed.concat(items);
-
-            for (const j in items)
-            {
-               const item = items[j];
-
-               for (const ix in this.#keyFields)
-               {
-                  const key2 = this.objectAt(item, this.#keyFields[ix]);
-
-                  if (key2 && this.has(key2))
-                  {
-                     const ix = this.#map[key2].indexOf(item);
-
-                     if (ix !== -1) { this.#map[key2].splice(ix, 1); }
-
-                     if (this.#map[key2].length === 0) { delete this.#map[key2]; }
-                  }
-               }
-
-               this.#list.splice(this.#list.indexOf(item), 1);
-            }
-         }
-         delete this.#map[key];
-      }
-
-      if (this.#callback) { this.#callback('removeByKey', removed); }
 
       return this;
    }
@@ -333,17 +288,19 @@ export class HashArray<T extends Object>
 
             if (key)
             {
-               const ix = this.#map[key].indexOf(item);
+               const items = this.#map.get(key);
+
+               const ix = items?.indexOf(item);
                if (ix !== -1)
                {
-                  this.#map[key].splice(ix, 1);
+                  items.splice(ix, 1);
                }
                else
                {
                   throw new Error(`HashArray: attempting to remove an object that was never added; key: ${key}`);
                }
 
-               if (this.#map[key].length === 0) { delete this.#map[key]; }
+               if (items.length === 0) { this.#map.delete(key); }
             }
          }
 
@@ -363,6 +320,73 @@ export class HashArray<T extends Object>
       if (this.#callback) { this.#callback('remove', items); }
 
       return this;
+   }
+
+   /**
+    * Removes item by the given keys.
+    *
+    * @param {...string}   keys - Keys to remove.
+    *
+    * @returns {HashArray<T>} This instance.
+    */
+   removeByKey(...keys: string[]): this
+   {
+      let removed: T[] = [];
+
+      for (let i = keys.length; --i >= 0;)
+      {
+         const key = keys[i];
+         const items = this.#map.get(key)?.concat();
+
+         if (items)
+         {
+            removed = removed.concat(items);
+
+            for (const j in items)
+            {
+               const item = items[j];
+
+               for (const ix in this.#keyFields)
+               {
+                  const key2 = this.objectAt(item, this.#keyFields[ix]);
+
+                  if (key2 && this.has(key2))
+                  {
+                     const items = this.#map.get(key2);
+
+                     const ix = items.indexOf(item);
+
+                     if (ix !== -1) { items.splice(ix, 1); }
+
+                     if (items.length === 0) { this.#map.delete(key2); }
+                  }
+               }
+
+               this.#list.splice(this.#list.indexOf(item), 1);
+            }
+         }
+         this.#map.delete(key);
+      }
+
+      if (this.#callback) { this.#callback('removeByKey', removed); }
+
+      return this;
+   }
+
+   /**
+    * When treating HashArray as a cache removing the first item removes the oldest item.
+    */
+   removeFirst()
+   {
+      if (this.#list.length) { this.remove(this.#list[0]); }
+   }
+
+   /**
+    * When treating HashArray as a cache removing the last item removes the newest item.
+    */
+   removeLast()
+   {
+      if (this.#list.length) { this.remove(this.#list[this.#list.length - 1]); }
    }
 
    // -----------------------------------
@@ -439,6 +463,51 @@ export class HashArray<T extends Object>
       return this;
    }
 
+   /**
+    * @returns {IterableIterator<[string, T[]]>} An entries iterator w/ key and all associated values.
+    */
+   entries(): IterableIterator<[string, T[]]>
+   {
+      return this.#map.entries();
+   }
+
+   /**
+    * @returns {Generator<[string, T], void, unknown>} Generator of flattened entries.
+    * @yields {[string, T]}
+    */
+   *entriesFlat(): IterableIterator<[string, T]>
+   {
+      for (const key of this.#map.keys())
+      {
+         const items = this.#map.get(key);
+         for (const item of items) { yield [key, item]; }
+      }
+   }
+
+   /**
+    * @returns {IterableIterator<string>} A keys iterator.
+    */
+   keys(): IterableIterator<string>
+   {
+      return this.#map.keys();
+   }
+
+   /**
+    * @returns {IterableIterator<T[]>} A values iterator / all items values grouped by key.
+    */
+   values(): IterableIterator<T[]>
+   {
+      return this.#map.values();
+   }
+
+   /**
+    * @returns {IterableIterator<T>} A flat values iterator by default in order added.
+    */
+   valuesFlat(): IterableIterator<T>
+   {
+      return this.#list.values();
+   }
+
    // -----------------------------------
    // Cloning
    // -----------------------------------
@@ -455,7 +524,7 @@ export class HashArray<T extends Object>
    clone({ callback, items = true }: { callback?: (type: string, what?: any) => void, items?: boolean } = {}):
     HashArray<T>
    {
-      const n = new HashArray<T>([...this.#keyFields], callback ? callback : this.#callback);
+      const n = new HashArray<T>(klona(this.#keyFields), callback ? callback : this.#callback);
 
       if (!items) { n.addAll([...this.#list]); }
 
@@ -542,7 +611,7 @@ export class HashArray<T extends Object>
          return val !== void 0 && val !== false;
       };
 
-      const ha = new HashArray<T>([...this.#keyFields]);
+      const ha = new HashArray<T>(klona(this.#keyFields));
       ha.addAll(this.getAll(key).filter(callback));
 
       return ha;
@@ -567,25 +636,24 @@ export class HashArray<T extends Object>
 
          if (inst)
          {
-            if (this.has(inst))
-            {
-               if (this.#options.ignoreDuplicates)
-               {
-                  return;
-               }
+            const items = this.#map.get(inst)
 
-               if (this.#map[inst].indexOf(item) !== -1)
+            if (items)
+            {
+               if (this.#options.ignoreDuplicates) { return; }
+
+               if (items.indexOf(item) !== -1)
                {
                   // Cannot add the same item twice
                   needsDupCheck = true;
                   continue;
                }
 
-               this.#map[inst].push(item);
+               items.push(item);
             }
             else
             {
-               this.#map[inst] = [item];
+               this.#map.set(inst, [item]);
             }
          }
       }

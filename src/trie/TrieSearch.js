@@ -1,4 +1,8 @@
-import { HashArray } from '../hash/HashArray.ts';
+import { HashArray } from '../hash/HashArray';
+
+// import {
+//    Key,
+//    KeyFields }       from '../types';
 
 /**
  * @template T
@@ -218,7 +222,8 @@ export class TrieSearch
          }
       }
 
-      return !reducer ? ret.all : accumulator;
+      // TODO pass back iterator? Could make further sorting harder.
+      return !reducer ? [...ret.valuesFlat()] : accumulator;
    }
 
    static UNION_REDUCER(accumulator, phrase, matches, trie)
@@ -278,7 +283,7 @@ export class TrieSearch
 
    #cleanCache()
    {
-      while (this.#cache.all.length > this.#options.maxCacheSize) { this.#cache.remove(this.#cache.all[0]); }
+      while (this.#cache.sizeFlat > this.#options.maxCacheSize) { this.#cache.removeFirst(); }
    }
 
    /**
@@ -365,7 +370,7 @@ export class TrieSearch
          ret = ret ? ret.intersection(temp) : temp;
       }
 
-      const v = ret ? ret.all : [];
+      const v = ret ? [...ret.valuesFlat()] : [];
 
       if (this.#options.cache)
       {
@@ -378,25 +383,25 @@ export class TrieSearch
 
       function aggregate(node, ha)
       {
-         if (limit && ha.all.length === limit) { return; }
+         if (limit && ha.sizeFlat === limit) { return; }
 
          if (node.value && node.value.length)
          {
-            if (!limit || (ha.all.length + node.value.length) < limit)
+            if (!limit || (ha.sizeFlat + node.value.length) < limit)
             {
                ha.addAll(node.value);
             }
             else
             {
                // Limit is less than the number of entries in the node.value + ha combined
-               ha.addAll(node.value.slice(0, limit - ha.all.length));
+               ha.addAll(node.value.slice(0, limit - ha.sizeFlat));
                return;
             }
          }
 
          for (const k in node)
          {
-            if (limit && ha.all.length === limit) { return; }
+            if (limit && ha.sizeFlat === limit) { return; }
             if (k !== 'value') { aggregate(node[k], ha); }
          }
       }
