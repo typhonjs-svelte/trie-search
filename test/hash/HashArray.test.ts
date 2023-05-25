@@ -1,4 +1,10 @@
-import { HashArray } from '../../src/HashArray';
+import { HashArray } from '../../src';
+
+type Item = { key: string };
+type Item2 = { key1: string, key2: string };
+type ItemDeep = { key: string, child: Item2 };
+type People = { firstName: string, lastName: string };
+type DeepData = { type: string, data: { speed: number, weight: number, mobile?: boolean } };
 
 describe('HashArray', () =>
 {
@@ -23,17 +29,19 @@ describe('HashArray', () =>
 
    describe('add(items) should work with 1 item', () =>
    {
-      const ha = new HashArray(['key']);
-      const item = { key: 'whatever' };
-
-      ha.callback = (type, what) =>
+      const callback = (type, what) =>
       {
+         if (['construct'].includes(type)) { return; }
+
          it(`Should have a 'add' callback.`, () =>
          {
             assert.equal(type, 'add');
             assert.strictEqual(what[0], item);
          });
       };
+
+      const ha = new HashArray<Item>(['key'], callback);
+      const item = { key: 'whatever' };
 
       ha.add(item);
 
@@ -48,12 +56,13 @@ describe('HashArray', () =>
        () => assert.equal(ha.collides({ key: 'whatever' }), true));
 
       it('Should return false to a collides for a non-similar object.',
+       // @ts-expect-error
        () => assert.equal(ha.collides({ otherKey: 'whatever' }), false));
    });
 
    describe('add(items) should work with 2 item and duplicate keys', () =>
    {
-      const ha = new HashArray(['key1', 'key2']);
+      const ha = new HashArray<Item2>(['key1', 'key2']);
       const item1 = {
          key1: 'whatever',
          key2: 'whatever'
@@ -82,7 +91,7 @@ describe('HashArray', () =>
 
    describe('add(items) should work with 2 item and duplicate keys and options.ignoreDuplicates = true', () =>
    {
-      const ha = new HashArray(['key1', 'key2'], void 0, { ignoreDuplicates: true });
+      const ha = new HashArray<Item2>(['key1', 'key2'], void 0, { ignoreDuplicates: true });
       const item1 = {
          key1: 'whatever1',
          key2: 'whatever2'
@@ -105,7 +114,7 @@ describe('HashArray', () =>
 
    describe('add(items) should not allow addition of same item twice.', () =>
    {
-      const ha = new HashArray(['key']);
+      const ha = new HashArray<Item>(['key']);
       const item = { key: 'whatever' };
 
       ha.add(item);
@@ -120,15 +129,15 @@ describe('HashArray', () =>
 
    describe('add(items) should work with 1 item and multiple keys and key depths.', () =>
    {
-      const ha = new HashArray([
-         'key', ['child', 'key'],
+      const ha = new HashArray<ItemDeep>([
+         'key', ['child', 'key1'],
          ['child', 'key2']
       ]);
 
       const item = {
          key: 'whatever',
          child: {
-            key: 'deeeep',
+            key1: 'deeeep',
             key2: 'sup'
          }
       };
@@ -146,14 +155,10 @@ describe('HashArray', () =>
 
    describe('add(items) should work with > 1 item', () =>
    {
-      const ha = new HashArray(['key']);
-      const item1 = { key: 'whatever' };
-      const item2 = { key: 'whatever2' };
-      const item3 = { key: 'whatever3' };
-      const item4 = { key: 'whatever3' };
-
-      ha.callback = (type, what) =>
+      const callback = (type, what) =>
       {
+         if (['construct'].includes(type)) { return; }
+
          it(`Should have a 'add' callback.`, () =>
          {
             assert.equal(type, 'add');
@@ -163,6 +168,12 @@ describe('HashArray', () =>
             assert.strictEqual(what[3], item4);
          });
       };
+
+      const ha = new HashArray<Item>(['key'], callback);
+      const item1 = { key: 'whatever' };
+      const item2 = { key: 'whatever2' };
+      const item3 = { key: 'whatever3' };
+      const item4 = { key: 'whatever3' };
 
       ha.add(item1, item2, item3, item4);
 
@@ -177,7 +188,7 @@ describe('HashArray', () =>
 
    describe('removeByKey(keys) should work with 1 item', () =>
    {
-      const ha = new HashArray(['key']);
+      const ha = new HashArray<Item>(['key']);
       const item = { key: 'whatever' };
 
       ha.add(item);
@@ -193,8 +204,8 @@ describe('HashArray', () =>
 
    describe('removeByKey(keys) should work with 1 item and multiple key depths', () =>
    {
-      const ha = new HashArray([
-         ['child', 'key'],
+      const ha = new HashArray<ItemDeep>([
+         ['child', 'key1'],
          ['child', 'key2'],
          'key'
       ]);
@@ -202,7 +213,7 @@ describe('HashArray', () =>
       const item = {
          key: 'whatever',
          child: {
-            key: 'deeeeep',
+            key1: 'deeeeep',
             key2: 'foobang'
          }
       };
@@ -221,18 +232,10 @@ describe('HashArray', () =>
 
    describe('removeByKey(keys) should work with 4 items', () =>
    {
-      const ha = new HashArray(['key']);
-      const item1 = { key: 'whatever' };
-      const item2 = { key: 'whatever2' };
-      const item3 = { key: 'whatever3' };
-      const item4 = { key: 'whatever3' };
-
-      console.log('START');
-
-      ha.add(item1, item2, item3, item4);
-
-      ha.callback = (type, what) =>
+      const callback = (type, what) =>
       {
+         if (['add', 'construct'].includes(type)) { return; }
+
          it(`Should have a 'removeByKey' callback.`, () =>
          {
             assert.equal(type, 'removeByKey');
@@ -240,6 +243,14 @@ describe('HashArray', () =>
             assert.strictEqual(what[1], item4);
          });
       };
+
+      const ha = new HashArray<Item>(['key'], callback);
+      const item1 = { key: 'whatever' };
+      const item2 = { key: 'whatever2' };
+      const item3 = { key: 'whatever3' };
+      const item4 = { key: 'whatever3' };
+
+      ha.add(item1, item2, item3, item4);
 
       ha.removeByKey('whatever3');
 
@@ -258,19 +269,21 @@ describe('HashArray', () =>
 
    describe('remove(items) should work with 1 item', () =>
    {
-      const ha = new HashArray(['key']);
-      const item = { key: 'whatever' };
-
-      ha.add(item);
-
-      ha.callback = (type, what) =>
+      const callback = (type, what) =>
       {
+         if (['add', 'construct'].includes(type)) { return; }
+
          it(`Should have a 'remove' callback.`, () =>
          {
             assert.equal(type, 'remove');
             assert.strictEqual(what[0], item);
          });
       };
+
+      const ha = new HashArray<Item>(['key'], callback);
+      const item = { key: 'whatever' };
+
+      ha.add(item);
 
       ha.remove(item);
 
@@ -284,21 +297,23 @@ describe('HashArray', () =>
 
    describe('remove(items) should work with 3 items', () =>
    {
-      const ha = new HashArray(['key']);
-      const item1 = { key: 'whatever' };
-      const item2 = { key: 'whatever2' };
-      const item3 = { key: 'whatever3' };
-
-      ha.add(item1, item2, item3);
-
-      ha.callback = (type, what) =>
+      const callback = (type, what) =>
       {
+         if (['add', 'construct'].includes(type)) { return; }
+
          it(`Should have a 'remove' callback.`, () =>
          {
             assert.equal(type, 'remove');
             assert.strictEqual(what[0], item2);
          });
       };
+
+      const ha = new HashArray<Item>(['key'], callback);
+      const item1 = { key: 'whatever' };
+      const item2 = { key: 'whatever2' };
+      const item3 = { key: 'whatever3' };
+
+      ha.add(item1, item2, item3);
 
       ha.remove(item2);
 
@@ -315,15 +330,15 @@ describe('HashArray', () =>
       });
    });
 
-   describe('removeAll() should work', () =>
+   describe('clear() should work', () =>
    {
       const callback = (type, what) =>
       {
-         if (type === 'add' || type === 'construct') { return; }
+         if (['add', 'construct'].includes(type)) { return; }
 
          it(`Should have a 'remove' callback.`, () =>
          {
-            assert.equal(type, 'remove');
+            assert.equal(type, 'clear');
             assert.strictEqual(what[0], item1);
             assert.strictEqual(what[1], item2);
             assert.strictEqual(what[2], item3);
@@ -337,19 +352,19 @@ describe('HashArray', () =>
          });
       };
 
-      const ha = new HashArray(['key'], callback);
+      const ha = new HashArray<Item>(['key'], callback);
       const item1 = { key: 'whatever' };
       const item2 = { key: 'whatever2' };
       const item3 = { key: 'whatever3' };
 
       ha.add(item1, item2, item3);
 
-      ha.removeAll();
+      ha.clear();
    });
 
    describe('add should not allow adding of duplicate objects (single key)', () =>
    {
-      const ha = new HashArray('key');
+      const ha = new HashArray<Item>('key');
       const item1 = { key: 'whatever' };
       const item2 = { key: 'whatever2' };
       const item3 = { key: 'whatever3' };
@@ -361,7 +376,7 @@ describe('HashArray', () =>
 
    describe('add should not allow adding of duplicate objects (multi key)', () =>
    {
-      const ha = new HashArray(['key1', 'key2']);
+      const ha = new HashArray<Partial<Item2>>(['key1', 'key2']);
       const item1 = { key1: 'whatever2', key2: 'whatever3' };
       const item2 = { key1: 'whatever2' };
       const item3 = { key1: 'whatever3' };
@@ -373,7 +388,7 @@ describe('HashArray', () =>
 
    describe('intersection(ha) should work with simple single-key hasharrays', () =>
    {
-      const ha1 = new HashArray('key');
+      const ha1 = new HashArray<Item>('key');
       const item1 = { key: 'whatever' };
       const item2 = { key: 'whatever2' };
       const item3 = { key: 'whatever3' };
@@ -381,7 +396,7 @@ describe('HashArray', () =>
 
       ha1.add(item1, item2, item3);
 
-      const ha2 = ha1.clone(null, true);
+      const ha2 = ha1.clone();
       ha2.add(item1, item3, item4);
 
       const intersection = ha1.intersection(ha2);
@@ -398,7 +413,7 @@ describe('HashArray', () =>
 
    describe('intersection(ha) should work with simple multi-key hasharrays', () =>
    {
-      const ha1 = new HashArray(['key1', 'key2']);
+      const ha1 = new HashArray<Partial<Item2>>(['key1', 'key2']);
       const item1 = { key1: 'whatever', key2: 'whatever4' };
       const item2 = { key1: 'whatever2' };
       const item3 = { key1: 'whatever3' };
@@ -406,7 +421,7 @@ describe('HashArray', () =>
 
       ha1.add(item1, item2, item3);
 
-      const ha2 = ha1.clone(null, true);
+      const ha2 = ha1.clone();
       ha2.add(item1, item3, item4);
 
       const intersection = ha1.intersection(ha2);
@@ -422,7 +437,7 @@ describe('HashArray', () =>
 
    describe('complement(ha) should work with simple multi-key hasharrays', () =>
    {
-      const ha1 = new HashArray(['key1', 'key2']);
+      const ha1 = new HashArray<Partial<Item2>>(['key1', 'key2']);
       const item1 = { key1: 'whatever', key2: 'whatever4' };
       const item2 = { key1: 'whatever2' };
       const item3 = { key1: 'whatever3' };
@@ -431,7 +446,7 @@ describe('HashArray', () =>
       // Contains keys ['whatever', 'whatever2', 'whatever3', 'whatever4']
       ha1.add(item1, item2, item3, item4);
 
-      const ha2 = ha1.clone(null, true);
+      const ha2 = ha1.clone();
 
       // Contains keys ['whatever', 'whatever3', 'whatever4']
       ha2.add(item1, item3);
@@ -450,7 +465,7 @@ describe('HashArray', () =>
 
    describe('getAll(keys) should work', () =>
    {
-      const ha = new HashArray(['firstName', 'lastName']);
+      const ha = new HashArray<People>(['firstName', 'lastName']);
 
       const person1 = { firstName: 'Victor', lastName: 'Victor' };
       const person2 = { firstName: 'Victor', lastName: 'Manning' };
@@ -468,7 +483,7 @@ describe('HashArray', () =>
 
    describe('forEach(keys, callback) should work', () =>
    {
-      const ha = new HashArray(['type']);
+      const ha = new HashArray<DeepData>(['type']);
 
       const a = { type: 'airplane', data: { speed: 100, weight: 10000 } };
       const b = { type: 'airplane', data: { speed: 50, weight: 20000 } };
@@ -508,7 +523,7 @@ describe('HashArray', () =>
 
    describe('forEachDeep(keys, key, callback) should work', () =>
    {
-      const ha = new HashArray(['type']);
+      const ha = new HashArray<DeepData>(['type']);
 
       const a = { type: 'airplane', data: { speed: 100, weight: 10000 } };
       const b = { type: 'airplane', data: { speed: 50, weight: 20000 } };
@@ -548,7 +563,7 @@ describe('HashArray', () =>
 
    describe('sum(keys, key) should work', () =>
    {
-      const ha = new HashArray(['type']);
+      const ha = new HashArray<DeepData>(['type']);
 
       const a = { type: 'airplane', data: { speed: 100, weight: 10000 } };
       const b = { type: 'airplane', data: { speed: 50, weight: 20000 } };
@@ -570,7 +585,7 @@ describe('HashArray', () =>
 
    describe('average(keys, key, weight) should work', () =>
    {
-      const ha = new HashArray(['type']);
+      const ha = new HashArray<DeepData>(['type']);
 
       const a = { type: 'airplane', data: { speed: 100, weight: 0.1 } };
       const b = { type: 'airplane', data: { speed: 50, weight: 0.2 } };
@@ -600,7 +615,7 @@ describe('HashArray', () =>
 
    describe('filter(keys, callback) should work and return new HashArray', () =>
    {
-      const ha = new HashArray(['type']);
+      const ha = new HashArray<DeepData>(['type']);
 
       const a = { type: 'airplane', data: { speed: 100, weight: 0.1, mobile: true } };
       const b = { type: 'airplane', data: { speed: 50, weight: 0.2, mobile: true } };
@@ -629,12 +644,12 @@ describe('HashArray', () =>
 
    describe('methods without a standard return should return this.', () =>
    {
-      const ha = new HashArray('type');
-      const item = { type: 'blah' };
+      const ha = new HashArray<Item>('key');
+      const item = { key: 'blah' };
 
       it('add(...) should return this', () => assert(ha.add(item) === ha));
 
-      it('addAll(...) should return this', () => assert(ha.addAll([{ type: 'blah2' }]) === ha));
+      it('addAll(...) should return this', () => assert(ha.addAll([{ key: 'blah2' }]) === ha));
 
       it('remove(...) should return this', () => assert(ha.remove(item) === ha));
 

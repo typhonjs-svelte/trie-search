@@ -1,4 +1,4 @@
-import { HashArray } from './HashArray.js';
+import { HashArray } from '../hash/HashArray.ts';
 
 /**
  * @template T
