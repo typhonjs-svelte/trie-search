@@ -16,7 +16,9 @@
     }
   },
   "devDependencies": {
-    "@typhonjs-build-test/node" : "^0.0.9"
+    "@vitest/coverage-c8": "^0.31.1",
+    "@vitest/ui": "^0.31.1",
+    "vitest": "^0.31.1"
   },
   "files": [
     "/src",
@@ -26,7 +28,9 @@
   "scripts": {
     "eslint": "eslint .",
     "prepublishOnly": "npm run eslint && npm run types && npm run test-node",
-    "test-node": "c8 --exclude-after-remap=true --reporter=lcov --reporter=text-summary mocha -colors \"test/src/node/**/*.test.js\" --timeout 16000",
-    "types": "node -e \"import('@typhonjs-build-test/esm-d-ts').then(module => { module.generateDTS({ input: './src/index.js', output: './types/index.d.mts' }); });\""
+    "types": "node -e \"import('@typhonjs-build-test/esm-d-ts').then(module => { module.generateDTS({ input: './src/index.js', output: './types/index.d.mts' }); });\"",
+    "test": "vitest",
+    "test-ui": "vitest --ui --coverage",
+    "coverage": "vitest run --coverage"
   }
 }
