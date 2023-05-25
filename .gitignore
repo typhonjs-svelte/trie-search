@@ -1,7 +1,6 @@
-.dts
 .idea
-.nyc_output
 .DS_Store
 coverage/
+html/
 dist/
 node_modules/
