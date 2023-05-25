@@ -18,6 +18,7 @@
   "devDependencies": {
     "@vitest/coverage-c8": "^0.31.1",
     "@vitest/ui": "^0.31.1",
+    "typescript" : "^5.0.4",
     "vitest": "^0.31.1"
   },
   "files": [
@@ -27,8 +28,7 @@
   "browserslist": [">5%", "not IE 11"],
   "scripts": {
     "eslint": "eslint .",
-    "prepublishOnly": "npm run eslint && npm run types && npm run test-node",
-    "types": "node -e \"import('@typhonjs-build-test/esm-d-ts').then(module => { module.generateDTS({ input: './src/index.js', output: './types/index.d.mts' }); });\"",
+    "prepublishOnly": "npm run eslint && npm run build && npm run test",
     "test": "vitest",
     "test-ui": "vitest --ui --coverage",
     "coverage": "vitest run --coverage"
