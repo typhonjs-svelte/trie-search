@@ -19,9 +19,9 @@ export class HashArray<T extends Object>
 
    readonly #list: T[] = [];
 
-   readonly #options: HashArrayOptions;
-
    readonly #map: Map<string, T[]> = new Map<string, T[]>();
+
+   readonly #options: HashArrayOptions;
 
    /**
     * @param {string | KeyFields} [keyFields] -
@@ -66,17 +66,15 @@ export class HashArray<T extends Object>
     */
    add(...items: (T | Iterable<T>)[]): this
    {
-      for (let i = 0; i < items.length; i++)
+      for (const itemOrList of items)
       {
-         const itemsEntry = items[i];
-
-         if (isIterable(itemsEntry))
+         if (isIterable(itemOrList))
          {
-            for (const item of itemsEntry) { this.#addOne(item); }
+            for (const item of itemOrList) { this.#addOne(item); }
          }
          else
          {
-            this.#addOne(itemsEntry);
+            this.#addOne(itemOrList);
          }
       }
 
@@ -158,14 +156,20 @@ export class HashArray<T extends Object>
    {
       if (!target || !(target instanceof HashArray)) { throw new TypeError(`'target' must be a HashArray.`); }
 
-      const result = this.clone();
-      const allItems = this.clone().add(this.#list.concat(target.#list));
+      const result = new HashArray<T>(this.#keyFields, this.#options);
 
-      for (let i = allItems.#list.length; --i >= 0;)
+      for (const item of this.#list)
       {
-         const item = allItems.#list[i];
+         for (const keyField of this.#keyFields)
+         {
+            const key = this.#objectAt(item, keyField);
 
-         if (this.collides(item) && target.collides(item)) { result.add(item); }
+            if (key && this.#map.get(key)?.includes?.(item) && target.#map.get(key)?.includes?.(item))
+            {
+               result.add(item);
+               break;
+            }
+         }
       }
 
       return result;
@@ -208,7 +212,7 @@ export class HashArray<T extends Object>
 
       if (keyIsArray)
       {
-         for (const index in key) { results.add(this.getAsArray(key[index])); }
+         for (const index of key) { results.add(this.getAsArray(index)); }
       }
       else
       {
@@ -243,9 +247,9 @@ export class HashArray<T extends Object>
     */
    collides(item: Partial<T>): boolean
    {
-      for (const key of this.#keyFields)
+      for (const keyField of this.#keyFields)
       {
-         if (this.has(this.objectAt(item, key))) { return true; }
+         if (this.has(this.#objectAt(item, keyField))) { return true; }
       }
 
       return false;
@@ -366,35 +370,6 @@ export class HashArray<T extends Object>
    }
 
    // -----------------------------------
-   // Utility
-   // -----------------------------------
-
-   /**
-    * Returns the value for Key in the given item.
-    *
-    * @param {Partial<T>}  item - The target item or partial item.
-    *
-    * @param {Key}   key - The Key to lookup in item.
-    *
-    * @returns {any} Value for key in item.
-    */
-   objectAt(item: Partial<T>, key: Key): any
-   {
-      if (!isObject(item)) { throw new Error('Item must be an object.'); }
-
-      if (typeof key === 'string') { return item[key]; }
-
-      // else assume key is an array.
-      for (const k of key)
-      {
-         if (item) { item = item[k]; }
-         else { break; }
-      }
-
-      return item;
-   }
-
-   // -----------------------------------
    // Iteration
    // -----------------------------------
 
@@ -433,7 +408,7 @@ export class HashArray<T extends Object>
    {
       const items = this.getAll(key);
 
-      items.forEach((item) => callback(this.objectAt(item, index), item));
+      items.forEach((item) => callback(this.#objectAt(item, index), item));
 
       return this;
    }
@@ -509,7 +484,7 @@ export class HashArray<T extends Object>
 
       this.forEachDeep(key, index, (value, item) =>
       {
-         if (weightKey !== void 0) { value *= (this.objectAt(item, weightKey) / weightsTotal); }
+         if (weightKey !== void 0) { value *= (this.#objectAt(item, weightKey) / weightsTotal); }
 
          ret += value;
          tot++;
@@ -535,7 +510,7 @@ export class HashArray<T extends Object>
 
       this.forEachDeep(key, index, (value, item) =>
       {
-         if (weightKey !== void 0) { value *= this.objectAt(item, weightKey); }
+         if (weightKey !== void 0) { value *= this.#objectAt(item, weightKey); }
 
          ret += value;
       });
@@ -559,7 +534,7 @@ export class HashArray<T extends Object>
    {
       const callback = typeof callbackOrIndex === 'function' ? callbackOrIndex : (item) =>
       {
-         const val = this.objectAt(item, callbackOrIndex);
+         const val = this.#objectAt(item, callbackOrIndex);
          return val !== void 0 && val !== false;
       };
 
@@ -580,15 +555,13 @@ export class HashArray<T extends Object>
    {
       let needsDupCheck = false;
 
-      for (let key in this.#keyFields)
+      for (const keyField of this.#keyFields)
       {
-         const keyFieldKey = this.#keyFields[key];
+         const key = this.#objectAt(item, keyField);
 
-         const inst = this.objectAt(item, keyFieldKey);
-
-         if (inst)
+         if (key)
          {
-            const items = this.#map.get(inst)
+            const items = this.#map.get(key);
 
             if (items)
             {
@@ -605,12 +578,38 @@ export class HashArray<T extends Object>
             }
             else
             {
-               this.#map.set(inst, [item]);
+               this.#map.set(key, [item]);
             }
          }
       }
 
+      // I don't like the indexOf search in the #list as this is costly.
       if (!needsDupCheck || this.#list.indexOf(item) === -1) { this.#list.push(item); }
+   }
+
+   /**
+    * Returns the value for Key in the given item.
+    *
+    * @param {Partial<T>}  item - The target item or partial item.
+    *
+    * @param {Key}   key - The Key to lookup in item.
+    *
+    * @returns {any} Value for key in item.
+    */
+   #objectAt(item: Partial<T>, key: Key): any
+   {
+      if (!isObject(item)) { throw new Error('Item must be an object.'); }
+
+      if (typeof key === 'string') { return item[key]; }
+
+      // else assume key is an array.
+      for (const k of key)
+      {
+         if (item) { item = item[k]; }
+         else { break; }
+      }
+
+      return item;
    }
 
    /**
@@ -624,7 +623,7 @@ export class HashArray<T extends Object>
       for (const keyField of this.#keyFields)
       {
          // Get the key associated with the item.
-         const key = this.objectAt(item, keyField);
+         const key = this.#objectAt(item, keyField);
 
          if (key)
          {
