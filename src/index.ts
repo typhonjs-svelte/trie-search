@@ -1,2 +1,2 @@
 export * from './hash/HashArray';
-export * from './trie/TrieSearch.js';
+export * from './trie/TrieSearch';
