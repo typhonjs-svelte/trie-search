@@ -10,10 +10,7 @@ describe('HashArray', () =>
 {
    it('new HashArray(keys) should work', () =>
    {
-      const ha = new HashArray(['key'], (type) =>
-      {
-         it(`Should callback with 'construct'`, () => assert.equal(type, 'construct'));
-      });
+      const ha = new HashArray(['key']);
 
       it('Should have a size of 0.', () => assert.equal(ha.sizeFlat, 0));
 
@@ -29,18 +26,7 @@ describe('HashArray', () =>
 
    describe('add(items) should work with 1 item', () =>
    {
-      const callback = (type, what) =>
-      {
-         if (['construct'].includes(type)) { return; }
-
-         it(`Should have a 'add' callback.`, () =>
-         {
-            assert.equal(type, 'add');
-            assert.strictEqual(what[0], item);
-         });
-      };
-
-      const ha = new HashArray<Item>(['key'], callback);
+      const ha = new HashArray<Item>(['key']);
       const item = { key: 'whatever' };
 
       ha.add(item);
@@ -91,7 +77,7 @@ describe('HashArray', () =>
 
    describe('add(items) should work with 2 item and duplicate keys and options.ignoreDuplicates = true', () =>
    {
-      const ha = new HashArray<Item2>(['key1', 'key2'], void 0, { ignoreDuplicates: true });
+      const ha = new HashArray<Item2>(['key1', 'key2'], { ignoreDuplicates: true });
       const item1 = {
          key1: 'whatever1',
          key2: 'whatever2'
@@ -155,21 +141,7 @@ describe('HashArray', () =>
 
    describe('add(items) should work with > 1 item', () =>
    {
-      const callback = (type, what) =>
-      {
-         if (['construct'].includes(type)) { return; }
-
-         it(`Should have a 'add' callback.`, () =>
-         {
-            assert.equal(type, 'add');
-            assert.strictEqual(what[0], item1);
-            assert.strictEqual(what[1], item2);
-            assert.strictEqual(what[2], item3);
-            assert.strictEqual(what[3], item4);
-         });
-      };
-
-      const ha = new HashArray<Item>(['key'], callback);
+      const ha = new HashArray<Item>(['key']);
       const item1 = { key: 'whatever' };
       const item2 = { key: 'whatever2' };
       const item3 = { key: 'whatever3' };
@@ -232,19 +204,7 @@ describe('HashArray', () =>
 
    describe('removeByKey(keys) should work with 4 items', () =>
    {
-      const callback = (type, what) =>
-      {
-         if (['add', 'construct'].includes(type)) { return; }
-
-         it(`Should have a 'removeByKey' callback.`, () =>
-         {
-            assert.equal(type, 'removeByKey');
-            assert.strictEqual(what[0], item3);
-            assert.strictEqual(what[1], item4);
-         });
-      };
-
-      const ha = new HashArray<Item>(['key'], callback);
+      const ha = new HashArray<Item>(['key']);
       const item1 = { key: 'whatever' };
       const item2 = { key: 'whatever2' };
       const item3 = { key: 'whatever3' };
@@ -269,18 +229,7 @@ describe('HashArray', () =>
 
    describe('remove(items) should work with 1 item', () =>
    {
-      const callback = (type, what) =>
-      {
-         if (['add', 'construct'].includes(type)) { return; }
-
-         it(`Should have a 'remove' callback.`, () =>
-         {
-            assert.equal(type, 'remove');
-            assert.strictEqual(what[0], item);
-         });
-      };
-
-      const ha = new HashArray<Item>(['key'], callback);
+      const ha = new HashArray<Item>(['key']);
       const item = { key: 'whatever' };
 
       ha.add(item);
@@ -297,18 +246,7 @@ describe('HashArray', () =>
 
    describe('remove(items) should work with 3 items', () =>
    {
-      const callback = (type, what) =>
-      {
-         if (['add', 'construct'].includes(type)) { return; }
-
-         it(`Should have a 'remove' callback.`, () =>
-         {
-            assert.equal(type, 'remove');
-            assert.strictEqual(what[0], item2);
-         });
-      };
-
-      const ha = new HashArray<Item>(['key'], callback);
+      const ha = new HashArray<Item>(['key']);
       const item1 = { key: 'whatever' };
       const item2 = { key: 'whatever2' };
       const item3 = { key: 'whatever3' };
@@ -332,27 +270,7 @@ describe('HashArray', () =>
 
    describe('clear() should work', () =>
    {
-      const callback = (type, what) =>
-      {
-         if (['add', 'construct'].includes(type)) { return; }
-
-         it(`Should have a 'remove' callback.`, () =>
-         {
-            assert.equal(type, 'clear');
-            assert.strictEqual(what[0], item1);
-            assert.strictEqual(what[1], item2);
-            assert.strictEqual(what[2], item3);
-         });
-
-         it('Should have 0 items after removeAll', () => assert.equal(ha.sizeFlat, 0));
-
-         it('Should have a map with no keys.', () =>
-         {
-            for (const key of ha.keys()) { assert.equal(key, void 0); }
-         });
-      };
-
-      const ha = new HashArray<Item>(['key'], callback);
+      const ha = new HashArray<Item>(['key']);
       const item1 = { key: 'whatever' };
       const item2 = { key: 'whatever2' };
       const item3 = { key: 'whatever3' };
@@ -360,6 +278,13 @@ describe('HashArray', () =>
       ha.add(item1, item2, item3);
 
       ha.clear();
+
+      it('Should have 0 items after clear()', () => assert.equal(ha.sizeFlat, 0));
+
+      it('Should have a map with no keys.', () =>
+      {
+         for (const key of ha.keys()) { assert.equal(key, void 0); }
+      });
    });
 
    describe('add should not allow adding of duplicate objects (single key)', () =>
@@ -646,10 +571,15 @@ describe('HashArray', () =>
    {
       const ha = new HashArray<Item>('key');
       const item = { key: 'blah' };
+      const item2 = { key: 'blah2' };
 
       it('add(...) should return this', () => assert(ha.add(item) === ha));
 
-      it('addAll(...) should return this', () => assert(ha.addAll([{ key: 'blah2' }]) === ha));
+      it('clear(...) should return this', () => assert(ha.clear() === ha));
+
+      // it('forEach(...) should return this', () => assert(ha.forEach('', () => void 0) === ha));
+
+      // it('forEachDeep(...) should return this', () => assert(ha.forEachDeep('', '', () => void 0) === ha));
 
       it('remove(...) should return this', () => assert(ha.remove(item) === ha));
 
