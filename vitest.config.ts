@@ -4,7 +4,7 @@ import {
 
 export default defineConfig({
    test: {
-      exclude: [...configDefaults.exclude, 'packages/template/*'],
+      exclude: [...configDefaults.exclude],
       include: ['./test/**/*.ts'],
       coverage: {
          exclude: ['test/**'],
