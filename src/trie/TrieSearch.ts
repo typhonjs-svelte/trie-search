@@ -1,23 +1,28 @@
+import { klona }     from '#runtime/util/object';
+
 import { HashArray } from '../hash/HashArray';
 
-// import {
-//    Key,
-//    KeyFields }       from '../types';
+import type {
+   Key,
+   KeyFields }       from '../types';
+
+export type TrieCacheEntry<T> = {
+   key: string;
+   value: T[]
+}
 
 /**
  * @template T
  */
-export class TrieSearch
+export class TrieSearch<T extends Object>
 {
-   /** @type {HashArray} */
-   #cache;
+   readonly #cache: HashArray<TrieCacheEntry<T>>;
 
-   #keyFields;
+   readonly #keyFields: KeyFields;
 
-   /** @type {HashArray} */
-   #indexed;
+   readonly #indexed: HashArray<T>;
 
-   #options;
+   readonly #options;
 
    #root;
 
@@ -60,7 +65,7 @@ export class TrieSearch
 
    get keyFields()
    {
-      return this.#keyFields;
+      return klona(this.#keyFields);
    }
 
    get root()
@@ -73,19 +78,24 @@ export class TrieSearch
       return this.#size;
    }
 
-   add(obj, customKeys)
+   /**
+    *
+    * @param {T}  item -
+    *
+    * @param {KeyFields}   customKeys -
+    */
+   add(item: T, customKeys?: KeyFields): this
    {
-      if (this.#options.cache) { this.clearCache(); }
+      if (this.#options.cache) { this.cache.clear(); }
 
       // Someone might have called add via an array forEach where the second param is a number
       if (typeof customKeys === 'number') { customKeys = void 0; }
 
-      const keyFields = customKeys || this.#keyFields;
+      const keyFields = customKeys ?? this.#keyFields;
 
-      for (const k in keyFields)
+      for (const key of keyFields)
       {
-         const key = keyFields[k];
-         let val = Array.isArray(key) ? TrieSearch.#deepLookup(obj, key) : obj[key];
+         let val = Array.isArray(key) ? TrieSearch.#deepLookup(item, key) : item[key];
 
          if (!val) { continue; }
 
@@ -95,14 +105,16 @@ export class TrieSearch
 
          for (let v = 0; v < expandedValues.length; v++)
          {
-            this.map(expandedValues[v], obj);
+            this.map(expandedValues[v], item);
          }
       }
+
+      return this;
    }
 
    addFromObject(obj, valueField)
    {
-      if (this.#options.cache) { this.clearCache(); }
+      if (this.#options.cache) { this.#cache.clear(); }
 
       valueField = valueField ?? 'value';
 
@@ -119,11 +131,6 @@ export class TrieSearch
    addAll(arr, customKeys)
    {
       for (let i = 0; i < arr.length; i++) { this.add(arr[i], customKeys); }
-   }
-
-   clearCache()
-   {
-      this.#cache = new HashArray('key');
    }
 
    getId(item)
@@ -155,7 +162,7 @@ export class TrieSearch
          }
       }
 
-      if (this.#options.cache) { this.clearCache(); }
+      if (this.#options.cache) { this.#cache.clear(); }
 
       if (this.#options.keepAll)
       {
@@ -195,6 +202,13 @@ export class TrieSearch
       this.#size = 0;
    }
 
+   /**
+    * @param {string | Iterable<string>}  phrases -
+    *
+    * @param reducer
+    *
+    * @param {number}   limit -
+    */
    search(phrases, reducer, limit)
    {
       const haKeyFields = this.#options.indexField ? [this.#options.indexField] : this.#keyFields;
@@ -218,7 +232,7 @@ export class TrieSearch
          }
          else
          {
-            ret = ret ? ret.addAll(matches) : new HashArray(haKeyFields).addAll(matches);
+            ret = ret ? ret.add(matches) : new HashArray(haKeyFields).add(matches);
          }
       }
 
@@ -276,14 +290,31 @@ export class TrieSearch
       { regex: /[ùúûü]/ig, alternate: 'u' },
       { regex: /[æ]/ig, alternate: 'ae' }
    ];
-   static #deepLookup(obj, keys)
-   {
-      return keys.length === 1 ? obj[keys[0]] : this.#deepLookup(obj[keys[0]], keys.slice(1, keys.length));
-   }
 
+   /**
+    * Cleans the cache by a simple FIFO method; first in / first out removing entries until `maxCacheSize` is reached.
+    */
    #cleanCache()
    {
       while (this.#cache.sizeFlat > this.#options.maxCacheSize) { this.#cache.removeFirst(); }
+   }
+
+   /**
+    * Given an array of keys iterate through the item to find the value referenced.
+    *
+    * @param {T}  item -
+    *
+    * @param {string[]} keys -
+    */
+   static #deepLookup<T>(item: T, keys: string[]): any
+   {
+      if (keys.length === 1) { return item[keys[0]]; }
+
+      let current = item[keys[0]];
+
+      for (let i = 1; i < keys.length; i++) { current = current[keys[i]]; }
+
+      return current;
    }
 
    /**
@@ -299,9 +330,9 @@ export class TrieSearch
     *
     * @param {string}   value The string to find alternates for.
     *
-    * @returns {Array} Always returns an array even if no matches.
+    * @returns {string[]}  Always returns an array even if no matches.
     */
-   #expandString(value)
+   #expandString(value: string): string[]
    {
       const values = [value];
 
@@ -337,16 +368,26 @@ export class TrieSearch
       }
    }
 
-   static #getCacheKey(phrase, limit)
+   /**
+    * @param {string}   phrase -
+    *
+    * @param {number}   [limit] -
+    *
+    * @returns {string} A cache key.
+    */
+   static #getCacheKey(phrase: string, limit?: number): string
    {
-      let cacheKey = phrase;
-
-      if (limit) { cacheKey = `${phrase}_${limit}`; }
-
-      return cacheKey;
+      return limit ? `${phrase}_${limit}` : phrase;
    }
 
-   #getImpl(phrase, limit)
+   /**
+    * @param {string}   phrase -
+    *
+    * @param {number}   limit -
+    *
+    * @returns {T[]} An array of items found from `phrase`.
+    */
+   #getImpl(phrase: string, limit: number): T[]
    {
       phrase = this.#options.ignoreCase ? phrase.toLowerCase() : phrase;
 
@@ -370,7 +411,7 @@ export class TrieSearch
          ret = ret ? ret.intersection(temp) : temp;
       }
 
-      const v = ret ? [...ret.valuesFlat()] : [];
+      const v: T[] = ret ? [...ret.valuesFlat()] : [];
 
       if (this.#options.cache)
       {
@@ -389,12 +430,12 @@ export class TrieSearch
          {
             if (!limit || (ha.sizeFlat + node.value.length) < limit)
             {
-               ha.addAll(node.value);
+               ha.add(node.value);
             }
             else
             {
                // Limit is less than the number of entries in the node.value + ha combined
-               ha.addAll(node.value.slice(0, limit - ha.sizeFlat));
+               ha.add(node.value.slice(0, limit - ha.sizeFlat));
                return;
             }
          }
@@ -407,7 +448,14 @@ export class TrieSearch
       }
    }
 
-   #keyToArr(key)
+   /**
+    * Splits the given key by a minimum prefix followed by remaining characters.
+    *
+    * @param {string}   key - A key to split.
+    *
+    * @returns {string[]} Array of split key with prefix / first entry set to `min` option.
+    */
+   #keyToArr(key): string[]
    {
       let keyArr;
 
@@ -427,42 +475,83 @@ export class TrieSearch
    }
 
    /**
-    * @param {string}   target -
+    * @param {string}   target - The target string.
     *
-    * @param {number}   index -
+    * @param {number}   index - Index for replacement.
     *
-    * @param {string}   replacement -
+    * @param {string}   replacement - The replacement string.
     *
-    * @returns {string}
+    * @returns {string} The target string w/ replacement.
     */
-   static #replaceCharAt(target, index, replacement)
+   static #replaceCharAt(target: string, index: number, replacement: string)
    {
       return target.substring(0, index) + replacement + target.substring(index + replacement.length);
    }
 }
 
-/**
- * @typedef {object} TrieSearchOptions
- *
- * @property {boolean} [cache=true] -
- *
- * @property {[{ regex: RegExp, alternate: string }]} [expandRegexes] -
- *
- * @property {string | (() => string)} [idFieldOrFunction] -
- *
- * @property {boolean} [ignoreCase=true] -
- *
- * @property {boolean} [insertFullUnsplitKey=false] -
- *
- * @property {boolean} [keepAll=false] -
- *
- * @property {string} [keepAllKey='id'] -
- *
- * @property {number} [maxCacheSize=64] -
- *
- * @property {number} [min=1] -
- *
- * @property {RegExp} [splitOnRegEx=/\s/g] -
- *
- * @property {RegExp} [splitOnGetRegEx=/\s/g] -
- */
+export type TrieSearchOptions = {
+   /**
+    * Is caching enabled; default: true.
+    */
+   cache?: boolean;
+
+   /**
+    * By default, this is set to an array of international vowels expansions, allowing searches for vowels like 'a' to
+    * return matches on 'å' or 'ä' etc. Set this to an empty array / `[]` if you want to disable it. See the top of
+    * `src/trie/TrieSearch.js` file for examples.
+    */
+   expandRegexes?: [{ regex: RegExp, alternate: string }];
+
+   /**
+    * Honestly, this conflicts a bit with `indexField`. I need to fix that. This is only used when using the
+    * UNION_REDUCER, explained in the Examples.
+    */
+   idFieldOrFunction?: string | (() => string);
+
+   /**
+    * Ignores case in lookups; default: true.
+    */
+   ignoreCase?: boolean;
+
+   /**
+    * If specified, determines which rows are unique when using search(); default: undefined.
+    */
+   indexField?: string;
+
+   /**
+    * Default: false
+    */
+   insertFullUnsplitKey?: boolean;
+
+   /**
+    * Default: false
+    */
+   keepAll?: boolean;
+
+   /**
+    * Default: 'id'
+    */
+   keepAllKey?: string;
+
+   /**
+    * The max cache size before removing entries in a FIFO manner; default: 64.
+    */
+   maxCacheSize?: number;
+
+   /**
+    * The size of the prefix for keys; Minimum length of a key to store and search. By default, this is 1, but you
+    * might improve performance by using 2 or 3.
+    */
+   min?: number;
+
+   /**
+    * How phrases are split on search: default: `/\s/g`. By default, this is any whitespace. Set to `false` if you have
+    * whitespace in your keys! Set it something else to split along other boundaries.
+    */
+   splitOnRegEx?: RegExp;
+
+   /**
+    * How phrases are split on retrieval / get: default: `/\s/g`.
+    */
+   splitOnGetRegEx?: RegExp;
+}
