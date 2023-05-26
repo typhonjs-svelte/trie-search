@@ -9,6 +9,9 @@
     "Michael Leahy <support@typhonjs.io> (https://github.com/typhonrt)"
   ],
   "sideEffects": false,
+  "imports": {
+    "#runtime/util/object": "@typhonjs-svelte/lib/util"
+  },
   "exports": {
     ".": {
       "types": "./types/index.d.mts",
@@ -16,9 +19,13 @@
     }
   },
   "devDependencies": {
+    "@rollup/plugin-typescript": "^11.1.1",
+    "@typhonjs-svelte/lib": "github:typhonjs-svelte/lib",
     "@vitest/coverage-c8": "^0.31.1",
     "@vitest/ui": "^0.31.1",
-    "klona": "^2.0.6",
+    "rollup": "^3.23.0",
+    "rollup-plugin-dts": "^5.3.0",
+    "tslib": "^2.5.2",
     "typescript" : "^5.0.4",
     "vitest": "^0.31.1"
   },
