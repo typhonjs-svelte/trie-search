@@ -171,27 +171,6 @@ export class HashArray<T extends Object>
       return result;
    }
 
-   /**
-    * @param {number}   count - How many items to sample.
-    *
-    * @param {Key} [key] - The Key for item(s) to sample.
-    *
-    * @returns {T[]} Random subset of items.
-    * @see http://en.wikipedia.org/wiki/Image_(mathematics)
-    */
-   sample(count: number, key?: Key): T[]
-   {
-      const image: T[] = key ? this.getAll(key) : this.#list;
-      const result: T[] = [];
-
-      for (const randNum of HashArray.#getUniqueRandomIntegers(count, 0, image.length - 1))
-      {
-         result.push(image[randNum]);
-      }
-
-      return result;
-   }
-
    // -----------------------------------
    // Retrieval
    // -----------------------------------
@@ -632,31 +611,6 @@ export class HashArray<T extends Object>
       }
 
       if (!needsDupCheck || this.#list.indexOf(item) === -1) { this.#list.push(item); }
-   }
-
-   /**
-    * @param {number}   count - Target count for length of returned results.
-    *
-    * @param {number}   min - Minimum index.
-    *
-    * @param {number}   max - Maximum index.
-    *
-    * @returns {Set<number>} An unique Set of random numbers between min & max; length is the minimum between count and
-    *          range of min / max.
-    */
-   static #getUniqueRandomIntegers(count: number, min: number, max: number): Set<number>
-   {
-      const set = new Set<number>();
-
-      count = Math.min(Math.max(max - min, 1), count);
-
-      while (set.size < count)
-      {
-         const r = Math.floor(min + (Math.random() * (max + 1)));
-         set.add(r);
-      }
-
-      return set;
    }
 
    /**
