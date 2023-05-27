@@ -502,7 +502,10 @@ export class HashArray<T extends object>
     */
    intersection(target: HashArray<T>): HashArray<T>
    {
-      if (!(target instanceof HashArray)) { throw new TypeError(`'target' must be a HashArray.`); }
+      if (!(target instanceof HashArray))
+      {
+         throw new TypeError(`HashArray.intersection error: 'target' must be a HashArray.`);
+      }
 
       const result = new HashArray<T>(this.#keyFields, this.#options);
 
@@ -538,13 +541,19 @@ export class HashArray<T extends object>
     */
    static objectAt(item: object, key: Key): any
    {
-      if (!isObject(item)) { throw new Error('Item must be an object.'); }
+      if (!isObject(item)) { throw new Error(`HashArray.objectAt error: 'item' must be an object.`); }
 
       if (typeof key === 'string') { return item[key]; }
+
+      if (!Array.isArray(key)) { return void 0; }
+
+      if (key.length === 0) { return void 0; }
 
       // else assume key is an array.
       for (const k of key)
       {
+         if (typeof k !== 'string') { return void 0; }
+
          if (item) { item = item[k]; }
          else { break; }
       }
