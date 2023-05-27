@@ -423,20 +423,47 @@ export class HashArray<T extends object>
    {
       const keysIsArray = Array.isArray(keys);
 
-      if (keys === '*' || (keysIsArray && keys[0] === '*')) { return this.#list; }
+      // Note: shallow copy of whole list.
+      if (keys === '*' || (keysIsArray && keys[0] === '*')) { return [...this.#list]; }
 
-      const results = new HashArray<T>(this.#keyFields);
+      const results = new Set<T>();
 
       if (keysIsArray)
       {
-         for (const key of keys) { results.add(this.get(key)); }
+         for (const key of keys)
+         {
+            const items = this.get(key);
+
+            if (!items) { continue; }
+
+            if (Array.isArray(items))
+            {
+               for (const item of items) { results.add(item); }
+            }
+            else
+            {
+               results.add(items);
+            }
+         }
       }
       else
       {
-         results.add(this.get(keys));
+         const items = this.get(keys);
+
+         if (items)
+         {
+            if (Array.isArray(items))
+            {
+               for (const item of items) { results.add(item); }
+            }
+            else
+            {
+               results.add(items);
+            }
+         }
       }
 
-      return results.#list;
+      return [...results];
    }
 
    /**
