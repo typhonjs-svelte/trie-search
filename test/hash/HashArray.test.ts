@@ -1,5 +1,4 @@
 import { HashArray } from '../../src';
-import {describe} from "vitest";
 
 type Item = { key: string };
 type Item2 = { key1: string, key2: string };
@@ -246,6 +245,114 @@ describe('HashArray API Tests', () =>
       });
    });
 
+   describe('Cloning', () =>
+   {
+      describe('clone()', () =>
+      {
+         const keyFields = ['key', ['key1', 'key2']];
+         const ha = new HashArray<Item>(keyFields);
+
+         it('Should be different instance', () => {
+            const haClone = ha.clone();
+            assert.notEqual(ha, haClone, 'clone is same instance');
+         });
+
+         it('Should have same, but different instance of KeyFields', () => {
+            const haClone = ha.clone();
+            assert.notEqual(ha, haClone, 'clone is same instance');
+         });
+
+         it('Should have no items', () => {
+            const haClone = ha.clone();
+            assert.equal(haClone.sizeFlat, 0, 'there are items');
+         });
+      });
+
+      describe('clone(CloneOps)', () =>
+      {
+         const ha = new HashArray<Item>('key');
+         const item: Item = { key: 'what' }
+         const item2: Item = { key: 'what2' }
+
+         ha.add(item, item2);
+
+         it('clone(HashArray.CloneOps.SHALLOW) should have items and they are same item instance', () => {
+            const haClone = ha.clone(HashArray.CloneOps.SHALLOW);
+
+            assert.equal(haClone.sizeFlat, 2);
+
+            assert.equal(item, haClone.get('what'), 'item is not same instance');
+            assert.equal(item2, haClone.get('what2'), 'item is not same instance');
+
+            assert.deepEqual(item, haClone.get('what'), 'item does not deeply equal');
+            assert.deepEqual(item2, haClone.get('what2'), 'item does not deeply equal');
+         });
+
+         it('clone(HashArray.CloneOps.DEEP) Should have items and they are cloned', () => {
+            const haClone = ha.clone(HashArray.CloneOps.DEEP);
+
+            assert.equal(haClone.sizeFlat, 2);
+
+            assert.notEqual(item, haClone.get('what'), 'item is same instance');
+            assert.notEqual(item2, haClone.get('what2'), 'item is same instance');
+
+            assert.deepEqual(item, haClone.get('what'), 'item does not deeply equal');
+            assert.deepEqual(item2, haClone.get('what2'), 'item does not deeply equal');
+         });
+      })
+
+      describe('clone(CloneOps) w/ class instance', () =>
+      {
+         class Test {
+            key: string;
+            constructor(key) { this.key = key; }
+            fooBar() {}
+         }
+
+         const ha = new HashArray<Test>('key');
+         const item: Test = new Test('what');
+         const item2: Test = new Test('what2');
+
+         ha.add(item, item2);
+
+         it('clone(HashArray.CloneOps.SHALLOW) should have items and they are same item instance', () => {
+            const haClone = ha.clone(HashArray.CloneOps.SHALLOW);
+
+            assert.equal(haClone.sizeFlat, 2);
+
+            assert.equal(item, haClone.get('what'), 'item is not same instance');
+            assert.equal(item2, haClone.get('what2'), 'item is not same instance');
+
+            assert.deepEqual(item, haClone.get('what'), 'item does not deeply equal');
+            assert.deepEqual(item2, haClone.get('what2'), 'item does not deeply equal');
+
+            assert.instanceOf(haClone.get('what'), Test, 'not instanceof Test');
+            assert.instanceOf(haClone.get('what2'), Test, 'not instanceof Test');
+
+            assert.isFunction((haClone.get('what') as Test).fooBar, 'does not have fooBar method');
+            assert.isFunction((haClone.get('what2') as Test).fooBar, 'does not have fooBar method');
+         });
+
+         it('clone(HashArray.CloneOps.DEEP) Should have items and they are cloned', () => {
+            const haClone = ha.clone(HashArray.CloneOps.DEEP);
+
+            assert.equal(haClone.sizeFlat, 2);
+
+            assert.notEqual(item, haClone.get('what'), 'item is same instance');
+            assert.notEqual(item2, haClone.get('what2'), 'item is same instance');
+
+            assert.deepEqual(item, haClone.get('what'), 'item does not deeply equal');
+            assert.deepEqual(item2, haClone.get('what2'), 'item does not deeply equal');
+
+            assert.instanceOf(haClone.get('what'), Test, 'not instanceof Test');
+            assert.instanceOf(haClone.get('what2'), Test, 'not instanceof Test');
+
+            assert.isFunction((haClone.get('what') as Test).fooBar, 'does not have fooBar method');
+            assert.isFunction((haClone.get('what2') as Test).fooBar, 'does not have fooBar method');
+         });
+      })
+   });
+
    describe('Filtering Items', () =>
    {
       describe('filter(keys, callback)', () =>
@@ -362,69 +469,6 @@ describe('HashArray API Tests', () =>
 
                assert.equal(s, 190);
             });
-         });
-      });
-   });
-
-   describe('Mathematical Operations', () =>
-   {
-      describe('average(keys, index, weightKey', () =>
-      {
-         describe('Should work', () =>
-         {
-            const ha = new HashArray<DeepData>(['type']);
-
-            const a = { type: 'airplane', data: { speed: 100, weight: 0.1 } };
-            const b = { type: 'airplane', data: { speed: 50, weight: 0.2 } };
-            const c = { type: 'airplane', data: { speed: 25, weight: 0.2 } };
-            const d = { type: 'boat', data: { speed: 10, weight: 0.2 } };
-            const e = { type: 'boat', data: { speed: 5, weight: 0.3 } };
-
-            ha.add(a, b, c, d, e);
-
-            it('Should work (average airplane speed).',
-             () => assert.equal(ha.average('airplane', ['data', 'speed']), 175 / 3));
-
-            it('Should work (average boat speed).',
-             () => assert.equal(ha.average(['boat'], ['data', 'speed']), 15 / 2));
-
-            it('Should work (average airplane and boat speed).',
-             () => assert.equal(ha.average(['airplane', 'boat'], ['data', 'speed']), 190 / 5));
-
-            it('Should work with weighted average === 1.0.',
-             () => assert.equal(ha.average(['airplane', 'boat'], ['data', 'speed'], ['data', 'weight']), 28.5));
-
-            it('Should work with weighted average !== 1.0.', () =>
-            {
-               a.data.weight = 1.1;
-               assert.equal(ha.average(['airplane', 'boat'], ['data', 'speed'], ['data', 'weight']), 64.25);
-            });
-         });
-      });
-
-      describe('sum(keys, index, weightKey)', () =>
-      {
-         describe('Should work', () =>
-         {
-            const ha = new HashArray<DeepData>(['type']);
-
-            const a = { type: 'airplane', data: { speed: 100, weight: 10000 } };
-            const b = { type: 'airplane', data: { speed: 50, weight: 20000 } };
-            const c = { type: 'airplane', data: { speed: 25, weight: 50000 } };
-            const d = { type: 'boat', data: { speed: 10, weight: 100000 } };
-            const e = { type: 'boat', data: { speed: 5, weight: 200000 } };
-
-            ha.add(a, b, c, d, e);
-
-            it('Should work (sum airplane speed).', () => assert.equal(ha.sum('airplane', ['data', 'speed']), 175));
-
-            it('Should work (sum boat speed).', () => assert.equal(ha.sum(['boat'], ['data', 'speed']), 15));
-
-            it('Should work (sum airplane and boat speed).',
-             () => assert.equal(ha.sum(['airplane', 'boat'], ['data', 'speed']), 190));
-
-            it('Should work with weighted sums.',
-             () => assert.equal(ha.sum('boat', ['data', 'speed'], ['data', 'weight']), (10 * 100000) + (5 * 200000)));
          });
       });
    });
@@ -596,37 +640,6 @@ describe('HashArray API Tests', () =>
 
    describe('Set Operations', () =>
    {
-      describe('difference(HashArray)', () =>
-      {
-         describe('Should work with simple multi-key HashArrays', () =>
-         {
-            const ha1 = new HashArray<Partial<Item2>>(['key1', 'key2']);
-            const item1 = { key1: 'whatever', key2: 'whatever4' };
-            const item2 = { key1: 'whatever2' };
-            const item3 = { key1: 'whatever3' };
-            const item4 = { key1: 'whatever4' };
-
-            // Contains keys ['whatever', 'whatever2', 'whatever3', 'whatever4']
-            ha1.add(item1, item2, item3, item4);
-
-            const ha2 = ha1.clone();
-
-            // Contains keys ['whatever', 'whatever3', 'whatever4']
-            ha2.add(item1, item3);
-
-            // SHOULD contain keys ['whatever2'] for item2 only.
-            const difference = ha1.difference(ha2);
-
-            it('Differance HashArray should contain item2 only', () =>
-            {
-               assert(!difference.collides(item1), 'does contain item1');
-               assert(difference.collides(item2), 'does not contain item2');
-               assert(!difference.collides(item3), 'does contain item3');
-               assert(!difference.collides(item4), 'does contain item4');
-            });
-         });
-      })
-
       describe('intersection(HashArray)', () =>
       {
          describe('Should work with simple single-key HashArrays', () =>

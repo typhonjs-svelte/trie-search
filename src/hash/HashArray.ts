@@ -8,6 +8,24 @@ import type {
    KeyFields } from '../types';
 
 /**
+ * Defines the operations for cloning items.
+ */
+enum CloneOps {
+   /**
+    * Do not clone items.
+    */
+   NONE,
+   /**
+    * Copy items to new cloned HashArray.
+    */
+   SHALLOW,
+   /**
+    * Clone all items.
+    */
+   DEEP
+}
+
+/**
  * HashArray is a data structure that combines the best feature of a hash (O(1) retrieval) and an array
  * (length and ordering). Think of it as a super-lightweight, extensible, self-indexing set database in memory.
  *
@@ -15,6 +33,8 @@ import type {
  */
 export class HashArray<T extends object>
 {
+   static CloneOps = CloneOps;
+
    readonly #keyFields: KeyFields;
 
    readonly #list: T[] = [];
@@ -93,18 +113,24 @@ export class HashArray<T extends object>
     * Clones this HashArray. By default, this returns an empty HashArray with cloned KeyFields. Set `items` in options
     * to true to copy the items. If you need to clone each item then set `cloneItems` to true as well.
     *
-    * @param {object}   [options] - Optional parameters.
-    *
-    * @param {boolean}  [options.clone=false] - When `items` and `clone` are true the current items are cloned and
-    *        added.
-    *
-    * @param {boolean}  [options.items=false] - When true the current items are added.
+    * @param {HashArray.CloneOps}   [items=HashArray.CloneOps.NONE] - Clone operation for items. By default, no items
+    *        are included in the clone. Supply `SHALLOW` and items are copied. Supply `DEEP` and items are cloned as
+    *        well.
     */
-   clone({ clone = false, items = false }: { clone?: boolean, items?: boolean } = {}): HashArray<T>
+   clone(items: CloneOps = CloneOps.NONE): HashArray<T>
    {
       const result = new HashArray<T>(klona(this.#keyFields), this.#options);
 
-      if (items) { result.add(this.#list); }
+      switch (items)
+      {
+         case CloneOps.SHALLOW:
+            result.add(this.#list);
+            break;
+
+         case CloneOps.DEEP:
+            for (let i = 0; i < this.#list.length; i++) { result.add(klona(this.#list[i])); }
+            break;
+      }
 
       return result;
    }
@@ -125,14 +151,11 @@ export class HashArray<T extends object>
    {
       const callback = typeof callbackOrIndex === 'function' ? callbackOrIndex : (item) =>
       {
-         const val = this.#objectAt(item, callbackOrIndex);
+         const val = HashArray.objectAt(item, callbackOrIndex);
          return val !== void 0 && val !== false;
       };
 
-      const ha = new HashArray<T>(klona(this.#keyFields));
-      ha.add(this.getAll(key).filter(callback));
-
-      return ha;
+      return this.clone().add(this.getAll(key).filter(callback));
    }
 
    // ----------------------------------------------------------------------------------------------------------------
@@ -174,7 +197,7 @@ export class HashArray<T extends object>
    {
       const items = this.getAll(key);
 
-      items.forEach((item) => callback(this.#objectAt(item, index), item));
+      items.forEach((item) => callback(HashArray.objectAt(item, index), item));
 
       return this;
    }
@@ -225,66 +248,6 @@ export class HashArray<T extends object>
    }
 
    // ----------------------------------------------------------------------------------------------------------------
-   // Mathematical Operations
-   // ----------------------------------------------------------------------------------------------------------------
-
-   /**
-    * Iterates deeply over items specified by `key` and `index` with an optional `weightKey` and calculates the
-    * average value.
-    *
-    * @param {Key}   key - The Key to retrieve item(s) to iterate.
-    *
-    * @param {Key}   index - A specific Key in each item to lookup.
-    *
-    * @param {Key}   [weightKey] - A specific Key in each item to provide a weighting value.
-    *
-    * @returns {number} The average value for the given iteration.
-    */
-   average(key: Key, index: Key, weightKey?: Key): number
-   {
-      let ret = 0;
-      let tot = 0;
-      let weightsTotal = 0;
-
-      if (weightKey !== void 0) { this.forEachDeep(key, weightKey, (value) => weightsTotal += value); }
-
-      this.forEachDeep(key, index, (value, item) =>
-      {
-         if (weightKey !== void 0) { value *= (this.#objectAt(item, weightKey) / weightsTotal); }
-
-         ret += value;
-         tot++;
-      });
-
-      return weightKey !== undefined ? ret : ret / tot;
-   }
-
-   /**
-    * Iterates deeply over items specified by `key` and `index` with an optional `weightKey` and calculates the sum.
-    *
-    * @param {Key}   key - The Key to retrieve item(s) to iterate.
-    *
-    * @param {Key}   index - A specific Key in each item to lookup.
-    *
-    * @param {Key}   [weightKey] - A specific Key in each item to provide a weighting value.
-    *
-    * @returns {number} The sum for the given iteration.
-    */
-   sum(key: Key, index: Key, weightKey?: Key): number
-   {
-      let ret = 0;
-
-      this.forEachDeep(key, index, (value, item) =>
-      {
-         if (weightKey !== void 0) { value *= this.#objectAt(item, weightKey); }
-
-         ret += value;
-      });
-
-      return ret;
-   }
-
-   // ----------------------------------------------------------------------------------------------------------------
    // Membership Testing
    // ----------------------------------------------------------------------------------------------------------------
 
@@ -299,7 +262,7 @@ export class HashArray<T extends object>
    {
       for (const keyField of this.#keyFields)
       {
-         if (this.has(this.#objectAt(item, keyField))) { return true; }
+         if (this.has(HashArray.objectAt(item, keyField))) { return true; }
       }
 
       return false;
@@ -352,10 +315,10 @@ export class HashArray<T extends object>
          this.#removeItemFromMap(item);
 
          // Remove the item from the list.
-         const indexInList = this.#list.indexOf(item);
-         if (indexInList !== -1)
+         const index = this.#list.indexOf(item);
+         if (index !== -1)
          {
-            this.#list.splice(indexInList, 1);
+            this.#list.splice(index, 1);
             removed = true;
          }
       }
@@ -456,11 +419,11 @@ export class HashArray<T extends object>
 
       if (keyIsArray)
       {
-         for (const index of key) { results.add(this.getAsArray(index)); }
+         for (const index of key) { results.add(this.get(index)); }
       }
       else
       {
-         results.add(this.getAsArray(key));
+         results.add(this.get(key));
       }
 
       return results.#list;
@@ -478,31 +441,19 @@ export class HashArray<T extends object>
       return this.#map.get(key) ?? [];
    }
 
+   /**
+    * Gets the item stored in the flat list of all items at the given index.
+    *
+    * @param {number}   index - The index to retrieve.
+    */
+   getAt(index): T
+   {
+      return this.#list[index];
+   }
+
    // ----------------------------------------------------------------------------------------------------------------
    // Set Operations
    // ----------------------------------------------------------------------------------------------------------------
-
-   /**
-    * Returns the difference of this HashArray and a target HashArray.
-    *
-    * @param {HashArray<T>}   target - Another HashArray.
-    *
-    * @returns {HashArray<T>} Returns a new HashArray that contains the difference between this
-    *          HashArray (A) and the target HashArray passed in (B). Returns A - B.
-    */
-   difference(target: HashArray<T>): HashArray<T>
-   {
-      if (!target || !(target instanceof HashArray)) { throw new TypeError(`'target' must be a HashArray.`); }
-
-      const ret = this.clone();
-
-      for (let i = this.#list.length; --i >= 0;)
-      {
-         if (!target.collides(this.#list[i])) { ret.add(this.#list[i]); }
-      }
-
-      return ret;
-   }
 
    /**
     * Returns the intersection of this HashArray and a target HashArray.
@@ -514,7 +465,7 @@ export class HashArray<T extends object>
     */
    intersection(target: HashArray<T>): HashArray<T>
    {
-      if (!target || !(target instanceof HashArray)) { throw new TypeError(`'target' must be a HashArray.`); }
+      if (!(target instanceof HashArray)) { throw new TypeError(`'target' must be a HashArray.`); }
 
       const result = new HashArray<T>(this.#keyFields, this.#options);
 
@@ -522,7 +473,7 @@ export class HashArray<T extends object>
       {
          for (const keyField of this.#keyFields)
          {
-            const key = this.#objectAt(item, keyField);
+            const key = HashArray.objectAt(item, keyField);
 
             if (key && this.#map.get(key)?.includes?.(item) && target.#map.get(key)?.includes?.(item))
             {
@@ -535,59 +486,20 @@ export class HashArray<T extends object>
       return result;
    }
 
-   // Internal -------------------------------------------------------------------------------------------------------
-
-   /**
-    * Adds an item to this HashArray.
-    *
-    * @param {T}  item - Item to add.
-    */
-   #addOne(item: T)
-   {
-      let needsDupCheck = false;
-
-      for (const keyField of this.#keyFields)
-      {
-         const key = this.#objectAt(item, keyField);
-
-         if (key)
-         {
-            const items = this.#map.get(key);
-
-            if (items)
-            {
-               if (this.#options.ignoreDuplicates) { return; }
-
-               if (items.indexOf(item) !== -1)
-               {
-                  // Cannot add the same item twice
-                  needsDupCheck = true;
-                  continue;
-               }
-
-               items.push(item);
-            }
-            else
-            {
-               this.#map.set(key, [item]);
-            }
-         }
-      }
-
-      // I don't like the indexOf search in the #list as this is costly.
-      if (!needsDupCheck || this.#list.indexOf(item) === -1) { this.#list.push(item); }
-   }
+   // ----------------------------------------------------------------------------------------------------------------
+   // Utility
+   // ----------------------------------------------------------------------------------------------------------------
 
    /**
     * Returns the value for Key in the given item.
     *
-    * @param {Partial<T>}  item - The target item or partial item.
+    * @param {object}   item - The target item or partial item.
     *
-    * @param {Key}   key - The Key to lookup in item.
+    * @param {Key}      key - The Key to lookup in item.
     *
     * @returns {any} Value for key in item.
     */
-   #objectAt(item: Partial<T>, key: Key): any
+   static objectAt(item: object, key: Key): any
    {
       if (!isObject(item)) { throw new Error('Item must be an object.'); }
 
@@ -603,6 +515,49 @@ export class HashArray<T extends object>
       return item;
    }
 
+   // Internal -------------------------------------------------------------------------------------------------------
+
+   /**
+    * Adds an item to this HashArray.
+    *
+    * @param {T}  item - Item to add.
+    */
+   #addOne(item: T)
+   {
+      let added = true;
+
+      for (const keyField of this.#keyFields)
+      {
+         const key = HashArray.objectAt(item, keyField);
+
+         if (key)
+         {
+            const items = this.#map.get(key);
+
+            if (items)
+            {
+               if (this.#options.ignoreDuplicates) { return; }
+
+               if (items.indexOf(item) !== -1)
+               {
+                  // Already added for this KeyField, so continue;
+                  added = false;
+                  continue;
+               }
+
+               items.push(item);
+            }
+            else
+            {
+               this.#map.set(key, [item]);
+            }
+         }
+      }
+
+      // TODO: The indexOf check is one performance area that is difficult to improve.
+      if (added || this.#list.indexOf(item) === -1) { this.#list.push(item); }
+   }
+
    /**
     * Remove an item from the associated keys in the map.
     *
@@ -610,28 +565,24 @@ export class HashArray<T extends object>
     */
    #removeItemFromMap(item: T): void
    {
-      // Iterate over each key field.
       for (const keyField of this.#keyFields)
       {
-         // Get the key associated with the item.
-         const key = this.#objectAt(item, keyField);
+         const key = HashArray.objectAt(item, keyField);
 
          if (key)
          {
-            // Get the items associated with the key.
-            const itemsForKey = this.#map.get(key);
+            const items = this.#map.get(key);
 
-            // If there are no items associated with the key then continue iteration.
-            if (!itemsForKey) { continue; }
+            if (!items) { continue; }
 
             // Find the index of the item.
-            const itemIndex = itemsForKey.indexOf(item);
+            const index = items.indexOf(item);
 
             // If the item is found, remove it from the array.
-            if (itemIndex !== -1) { itemsForKey.splice(itemIndex, 1); }
+            if (index !== -1) { items.splice(index, 1); }
 
             // If there are no more items for the key, delete the key from the map.
-            if (itemsForKey.length === 0) { this.#map.delete(key); }
+            if (items.length === 0) { this.#map.delete(key); }
          }
       }
    }
