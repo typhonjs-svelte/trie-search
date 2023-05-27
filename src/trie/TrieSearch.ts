@@ -17,7 +17,7 @@ export type TrieCacheEntry<T> = {
 /**
  * @template T
  */
-export class TrieSearch<T extends object | string>
+export class TrieSearch<T extends object>
 {
    readonly #cache: HashArray<TrieCacheEntry<T>>;
 
@@ -105,30 +105,6 @@ export class TrieSearch<T extends object | string>
       return this;
    }
 
-   #addOne(item: T)
-   {
-      if (!isObject(item)) { throw new TypeError(`TrieSearch.add error: The add method only accepts objects.`); }
-
-      for (const key of this.#keyFields)
-      {
-         let val = Array.isArray(key) ? HashArray.objectAt(item, key) : item[key];
-
-         if (!val) { continue; }
-
-         val = val.toString();
-
-         const expandedValues = this.#expandString(val);
-
-         for (let v = 0; v < expandedValues.length; v++) { this.map(expandedValues[v], item); }
-      }
-   }
-
-   getId(item)
-   {
-      return typeof this.#options.idFieldOrFunction === 'function' ? this.#options.idFieldOrFunction(item) :
-       item[this.#options.idFieldOrFunction];
-   }
-
    map(key: string, value: T)
    {
       if (this.#options.splitOnRegEx && this.#options.splitOnRegEx.test(key))
@@ -186,7 +162,7 @@ export class TrieSearch<T extends object | string>
       }
    }
 
-   reset()
+   clear()
    {
       this.#root = {};
       this.#size = 0;
@@ -194,6 +170,8 @@ export class TrieSearch<T extends object | string>
 
    /**
     * @param {string | Iterable<string>}  phrases -
+    *
+    * @param {object} [options] - Search Options.
     *
     * @param reducer
     *
@@ -205,9 +183,9 @@ export class TrieSearch<T extends object | string>
       let ret = void 0;
       let accumulator = void 0;
 
-      if (reducer && !this.#options.idFieldOrFunction)
+      if (reducer && !this.#options.indexField)
       {
-         throw new Error(`To use the accumulator you must specify the 'idFieldOrFunction' option.`);
+         throw new Error(`To use the accumulator you must specify the 'indexField' option.`);
       }
 
       phrases = Array.isArray(phrases) ? phrases : [phrases];
@@ -218,7 +196,7 @@ export class TrieSearch<T extends object | string>
 
          if (reducer)
          {
-            accumulator = reducer(accumulator, phrases[i], matches, this);
+            accumulator = reducer(accumulator, phrases[i], matches, this.#options.indexField);
          }
          else
          {
@@ -230,7 +208,7 @@ export class TrieSearch<T extends object | string>
       return !reducer ? [...ret.valuesFlat()] : accumulator;
    }
 
-   static UNION_REDUCER(accumulator, phrase, matches, trie)
+   static UNION_REDUCER(accumulator, phrase, matches, indexField)
    {
       if (accumulator === void 0) { return matches; }
 
@@ -246,7 +224,7 @@ export class TrieSearch<T extends object | string>
       {
          if (i < accumulator.length)
          {
-            id = trie.getId(accumulator[i]);
+            id = accumulator[i][indexField];
             map[id] = map[id] ? map[id] : 0;
             map[id]++;
 
@@ -255,7 +233,7 @@ export class TrieSearch<T extends object | string>
 
          if (i < matches.length)
          {
-            id = trie.getId(matches[i]);
+            id = matches[i][indexField];
             map[id] = map[id] ? map[id] : 0;
             map[id]++;
 
@@ -280,6 +258,24 @@ export class TrieSearch<T extends object | string>
       { regex: /[ùúûü]/ig, alternate: 'u' },
       { regex: /[æ]/ig, alternate: 'ae' }
    ];
+
+   #addOne(item: T)
+   {
+      if (!isObject(item)) { throw new TypeError(`TrieSearch.add error: The add method only accepts objects.`); }
+
+      for (const key of this.#keyFields)
+      {
+         let val = Array.isArray(key) ? HashArray.objectAt(item, key) : item[key];
+
+         if (!val) { continue; }
+
+         val = val.toString();
+
+         const expandedValues = this.#expandString(val);
+
+         for (let v = 0; v < expandedValues.length; v++) { this.map(expandedValues[v], item); }
+      }
+   }
 
    /**
     * Cleans the cache by a simple FIFO method; first in / first out removing entries until `maxCacheSize` is reached.
@@ -473,12 +469,6 @@ export type TrieSearchOptions = {
     * `src/trie/TrieSearch.js` file for examples.
     */
    expandRegexes?: [{ regex: RegExp, alternate: string }];
-
-   /**
-    * Honestly, this conflicts a bit with `indexField`. I need to fix that. This is only used when using the
-    * UNION_REDUCER, explained in the Examples.
-    */
-   idFieldOrFunction?: string | (() => string);
 
    /**
     * Ignores case in lookups; default: true.

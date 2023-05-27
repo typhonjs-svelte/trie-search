@@ -23,12 +23,14 @@ describe('TrieSearch', () =>
       {
          const ts = new TrieSearch();
 
-         ts.map('hello', 'world');
+         const item = { world: true }
+
+         ts.map('hello', item);
 
          expect(ts.search('hel').length).to.equal(1);
          expect(ts.search('hell').length).to.equal(1);
          expect(ts.search('hello').length).to.equal(1);
-         expect(ts.search('hel')[0]).to.equal('world');
+         expect(ts.search('hel')[0]).to.equal(item);
       });
    });
 
@@ -413,7 +415,7 @@ describe('TrieSearch', () =>
 
    describe('search(...) should work with a custom reducer and accumulator', () =>
    {
-      const ts = new TrieSearch('key', { min: 2, idFieldOrFunction: 'key' });
+      const ts = new TrieSearch('key', { min: 2, indexField: 'key' });
       const item1 = { key: 'I am red robin!' };
       const item2 = { key: 'I am red cockatiel!' };
       const item3 = { key: 'I am green cardinal!' };
@@ -428,14 +430,14 @@ describe('TrieSearch', () =>
 
       it(`search('robin', [reducer])`, () =>
       {
-         const result = ts.search('robin', { reducer: (_accumulator, phrase, phraseMatches, trie) =>
+         const result = ts.search('robin', { reducer: (_accumulator, phrase, phraseMatches, indexField) =>
          {
             expect(_accumulator).to.be.undefined;
             expect(phrase).to.equal('robin');
             expect(phraseMatches.length).to.equal(2);
             expect(phraseMatches[0]).to.equal(item5);
             expect(phraseMatches[1]).to.equal(item1);
-            expect(trie).to.equal(ts);
+            expect(indexField).to.equal('key');
 
             _accumulator = _accumulator || [];
             _accumulator.push(phraseMatches[1]);
