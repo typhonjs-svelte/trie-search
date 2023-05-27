@@ -5,7 +5,7 @@ import {
 export default defineConfig({
    test: {
       exclude: [...configDefaults.exclude],
-      include: ['./test/**/*.ts'],
+      include: ['./test/**/*.test.ts'],
       coverage: {
          exclude: ['test/**'],
          provider: 'c8',
@@ -13,5 +13,5 @@ export default defineConfig({
       },
       reporters: ['default', 'html'],
       globals: true
-   },
+   }
 });
