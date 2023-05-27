@@ -1,5 +1,4 @@
 import { HashArray } from '../../src';
-import {describe} from "vitest";
 
 type Item = { key: string };
 type Item2 = { key1: string, key2: string };
