@@ -13,7 +13,7 @@ import type {
  *
  * @template T
  */
-export class HashArray<T extends Object>
+export class HashArray<T extends object>
 {
    readonly #keyFields: KeyFields;
 
@@ -59,8 +59,12 @@ export class HashArray<T extends Object>
       return this.#list.length;
    }
 
+   // ----------------------------------------------------------------------------------------------------------------
+   // Adding Items
+   // ----------------------------------------------------------------------------------------------------------------
+
    /**
-    * @param {...T | Iterable<T>}  items - Items to add.
+    * @param {...(T | Iterable<T>)}  items - Items to add.
     *
     * @returns {HashArray<T>} This instance.
     */
@@ -98,145 +102,208 @@ export class HashArray<T extends Object>
       return this;
    }
 
-   // -----------------------------------
+   // ----------------------------------------------------------------------------------------------------------------
    // Cloning
-   // -----------------------------------
+   // ----------------------------------------------------------------------------------------------------------------
 
    /**
-    * Clones this HashArray.
+    * Clones this HashArray. By default, this returns an empty HashArray with cloned KeyFields. Set `items` in options
+    * to true to copy the items. If you need to clone each item then set `cloneItems` to true as well.
     *
     * @param {object}   [options] - Optional parameters.
     *
-    * @param {boolean}  [options.items=true] - When false the items are not cloned / KeyFields are.
+    * @param {boolean}  [options.clone=false] - When `items` and `clone` are true the current items are cloned and
+    *        added.
+    *
+    * @param {boolean}  [options.items=false] - When true the current items are added.
     */
-   clone({ items = true }: { items?: boolean } = {}): HashArray<T>
+   clone({ clone = false, items = false }: { clone?: boolean, items?: boolean } = {}): HashArray<T>
    {
-      const clone = new HashArray<T>(klona(this.#keyFields), this.#options);
+      const result = new HashArray<T>(klona(this.#keyFields), this.#options);
 
-      if (!items) { clone.add([...this.#list]); }
-
-      return clone;
-   }
-
-   // -----------------------------------
-   // Intersection, union, etc.
-   // -----------------------------------
-
-   /**
-    * Returns the complement of this HashArray and a target HashArray.
-    *
-    * @param {HashArray<T>}   target - Another HashArray.
-    *
-    * @returns {HashArray<T>} Returns a new HashArray that contains the complement (difference) between this
-    *          HashArray (A) and the target HashArray passed in (B). Returns A - B.
-    */
-   complement(target: HashArray<T>): HashArray<T>
-   {
-      if (!target || !(target instanceof HashArray)) { throw new TypeError(`'target' must be a HashArray.`); }
-
-      const ret = this.clone();
-
-      for (let i = this.#list.length; --i >= 0;)
-      {
-         if (!target.collides(this.#list[i])) { ret.add(this.#list[i]); }
-      }
-
-      return ret;
-   }
-
-   /**
-    * Returns the intersection of this HashArray and a target HashArray.
-    *
-    * @param {HashArray<T>}   target - Another HashArray.
-    *
-    * @returns {HashArray<T>} Returns a new HashArray that contains the intersection between this (A) and the HashArray
-    *          passed in (B). Returns A ^ B.
-    */
-   intersection(target: HashArray<T>): HashArray<T>
-   {
-      if (!target || !(target instanceof HashArray)) { throw new TypeError(`'target' must be a HashArray.`); }
-
-      const result = new HashArray<T>(this.#keyFields, this.#options);
-
-      for (const item of this.#list)
-      {
-         for (const keyField of this.#keyFields)
-         {
-            const key = this.#objectAt(item, keyField);
-
-            if (key && this.#map.get(key)?.includes?.(item) && target.#map.get(key)?.includes?.(item))
-            {
-               result.add(item);
-               break;
-            }
-         }
-      }
+      if (items) { result.add(this.#list); }
 
       return result;
    }
 
-   // -----------------------------------
-   // Retrieval
-   // -----------------------------------
+   // ----------------------------------------------------------------------------------------------------------------
+   // Filtering
+   // ----------------------------------------------------------------------------------------------------------------
 
    /**
-    * Gets item(s) by the given key.
+    * Filters this HashArray returning a new HashArray with the items that pass the given filter test.
     *
-    * @param {string}   key - The key for an item to retrieve.
+    * @param {Key}   key - The Key to retrieve item(s) to iterate.
     *
-    * @returns {T | T[]} All items stored by the given key.
+    * @param {Key | ((T) => boolean)}  callbackOrIndex - A Key to lookup for filter inclusion or a callback function
+    *        returning the filter result for the item.
     */
-   get(key: string): T | T[]
+   filter(key: Key, callbackOrIndex: Key | ((T) => boolean)): HashArray<T>
    {
-      const items = this.#map.get(key);
-
-      if (!items) { return; }
-
-      return items.length === 1 ? items[0] : items;
-   }
-
-   /**
-    * Gets all items stored by the given Key. You may pass `*` as a wildcard for all items.
-    *
-    * @param {Key}   key - The Key for item(s) to retrieve.
-    *
-    * @returns {T[]} All item(s) for the given Key.
-    */
-   getAll(key: Key): T[]
-   {
-      const keyIsArray = Array.isArray(key);
-
-      if (key === '*' || (keyIsArray && key[0] === '*')) { return this.#list; }
-
-      const results = new HashArray<T>(this.#keyFields);
-
-      if (keyIsArray)
+      const callback = typeof callbackOrIndex === 'function' ? callbackOrIndex : (item) =>
       {
-         for (const index of key) { results.add(this.getAsArray(index)); }
-      }
-      else
-      {
-         results.add(this.getAsArray(key));
-      }
+         const val = this.#objectAt(item, callbackOrIndex);
+         return val !== void 0 && val !== false;
+      };
 
-      return results.#list;
+      const ha = new HashArray<T>(klona(this.#keyFields));
+      ha.add(this.getAll(key).filter(callback));
+
+      return ha;
+   }
+
+   // ----------------------------------------------------------------------------------------------------------------
+   // Iterating Items
+   // ----------------------------------------------------------------------------------------------------------------
+
+   /**
+    * Iterates over all items retrieved by the given key invoking the callback function for each item.
+    *
+    * @param {Key}   key - The Key to retrieve items to iterate.
+    *
+    * @param {(T) => void)}   callback - A callback invoked for each item.
+    *
+    * @returns {HashArray<T>} This instance.
+    */
+   forEach(key: Key, callback: (T) => void): this
+   {
+      const items = this.getAll(key);
+
+      items.forEach(callback);
+
+      return this;
    }
 
    /**
-    * Gets item(s) by the given key always returning an array including an empty array when key is not in the HashArray.
+    * Iterates over all items retrieved by the given key invoking the callback function for each item with the value
+    * found by the `index` Key and the item itself.
     *
-    * @param {string}   key - The key for item(s) to retrieve.
+    * @param {Key}   key - The Key to retrieve item(s) to iterate.
     *
-    * @returns {T[]} All items for key or empty array.
+    * @param {Key}   index - A specific Key in each item to lookup.
+    *
+    * @param {(value: any, item: T) => void)}   callback - A callback invoked for each item with value of `index`
+    *        and item.
+    *
+    * @returns {HashArray<T>} This instance.
     */
-   getAsArray(key: string): T[]
+   forEachDeep(key: Key, index: Key, callback: (value: any, item: T) => void): this
    {
-      return this.#map.get(key) ?? [];
+      const items = this.getAll(key);
+
+      items.forEach((item) => callback(this.#objectAt(item, index), item));
+
+      return this;
    }
 
-   // -----------------------------------
-   // Peeking
-   // -----------------------------------
+   /**
+    * @returns {IterableIterator<[string, T[]]>} An entries iterator w/ key and all associated values.
+    */
+   entries(): IterableIterator<[string, T[]]>
+   {
+      return this.#map.entries();
+   }
+
+   /**
+    * @returns {Generator<[string, T], void, unknown>} Generator of flattened entries.
+    * @yields {[string, T]}
+    */
+   *entriesFlat(): IterableIterator<[string, T]>
+   {
+      for (const key of this.#map.keys())
+      {
+         const items = this.#map.get(key);
+         for (const item of items) { yield [key, item]; }
+      }
+   }
+
+   /**
+    * @returns {IterableIterator<string>} A keys iterator.
+    */
+   keys(): IterableIterator<string>
+   {
+      return this.#map.keys();
+   }
+
+   /**
+    * @returns {IterableIterator<T[]>} A values iterator / all items values grouped by key.
+    */
+   values(): IterableIterator<T[]>
+   {
+      return this.#map.values();
+   }
+
+   /**
+    * @returns {IterableIterator<T>} A flat values iterator by default in order added.
+    */
+   valuesFlat(): IterableIterator<T>
+   {
+      return this.#list.values();
+   }
+
+   // ----------------------------------------------------------------------------------------------------------------
+   // Mathematical Operations
+   // ----------------------------------------------------------------------------------------------------------------
+
+   /**
+    * Iterates deeply over items specified by `key` and `index` with an optional `weightKey` and calculates the
+    * average value.
+    *
+    * @param {Key}   key - The Key to retrieve item(s) to iterate.
+    *
+    * @param {Key}   index - A specific Key in each item to lookup.
+    *
+    * @param {Key}   [weightKey] - A specific Key in each item to provide a weighting value.
+    *
+    * @returns {number} The average value for the given iteration.
+    */
+   average(key: Key, index: Key, weightKey?: Key): number
+   {
+      let ret = 0;
+      let tot = 0;
+      let weightsTotal = 0;
+
+      if (weightKey !== void 0) { this.forEachDeep(key, weightKey, (value) => weightsTotal += value); }
+
+      this.forEachDeep(key, index, (value, item) =>
+      {
+         if (weightKey !== void 0) { value *= (this.#objectAt(item, weightKey) / weightsTotal); }
+
+         ret += value;
+         tot++;
+      });
+
+      return weightKey !== undefined ? ret : ret / tot;
+   }
+
+   /**
+    * Iterates deeply over items specified by `key` and `index` with an optional `weightKey` and calculates the sum.
+    *
+    * @param {Key}   key - The Key to retrieve item(s) to iterate.
+    *
+    * @param {Key}   index - A specific Key in each item to lookup.
+    *
+    * @param {Key}   [weightKey] - A specific Key in each item to provide a weighting value.
+    *
+    * @returns {number} The sum for the given iteration.
+    */
+   sum(key: Key, index: Key, weightKey?: Key): number
+   {
+      let ret = 0;
+
+      this.forEachDeep(key, index, (value, item) =>
+      {
+         if (weightKey !== void 0) { value *= this.#objectAt(item, weightKey); }
+
+         ret += value;
+      });
+
+      return ret;
+   }
+
+   // ----------------------------------------------------------------------------------------------------------------
+   // Membership Testing
+   // ----------------------------------------------------------------------------------------------------------------
 
    /**
     * Detects if the given item collides with an existing key / item pair.
@@ -267,9 +334,9 @@ export class HashArray<T extends Object>
       return this.#map.has(key);
    }
 
-   // -----------------------------------
-   // Removal
-   // -----------------------------------
+   // ----------------------------------------------------------------------------------------------------------------
+   // Removing Items
+   // ----------------------------------------------------------------------------------------------------------------
 
    /**
     * Removes all items.
@@ -369,179 +436,120 @@ export class HashArray<T extends Object>
       if (this.#list.length) { this.remove(this.#list[this.#list.length - 1]); }
    }
 
-   // -----------------------------------
-   // Iteration
-   // -----------------------------------
+   // ----------------------------------------------------------------------------------------------------------------
+   // Retrieving Items
+   // ----------------------------------------------------------------------------------------------------------------
 
    /**
-    * Iterates over all items retrieved by the given key invoking the callback function for each item.
+    * Gets item(s) by the given key.
     *
-    * @param {Key}   key - The Key to retrieve items to iterate.
+    * @param {string}   key - The key for an item to retrieve.
     *
-    * @param {(T) => void)}   callback - A callback invoked for each item.
-    *
-    * @returns {HashArray<T>} This instance.
+    * @returns {T | T[]} All items stored by the given key.
     */
-   forEach(key: Key, callback: (T) => void): this
+   get(key: string): T | T[]
    {
-      const items = this.getAll(key);
+      const items = this.#map.get(key);
 
-      items.forEach(callback);
+      if (!items) { return; }
 
-      return this;
+      return items.length === 1 ? items[0] : items;
    }
 
    /**
-    * Iterates over all items retrieved by the given key invoking the callback function for each item with the value
-    * found by the `index` Key and the item itself.
+    * Gets all items stored by the given Key. You may pass `*` as a wildcard for all items.
     *
-    * @param {Key}   key - The Key to retrieve item(s) to iterate.
+    * @param {Key}   key - The Key for item(s) to retrieve.
     *
-    * @param {Key}   index - A specific Key in each item to lookup.
-    *
-    * @param {(value: any, item: T) => void)}   callback - A callback invoked for each item with value of `index`
-    *        and item.
-    *
-    * @returns {HashArray<T>} This instance.
+    * @returns {T[]} All item(s) for the given Key.
     */
-   forEachDeep(key: Key, index: Key, callback: (value: any, item: T) => void): this
+   getAll(key: Key): T[]
    {
-      const items = this.getAll(key);
+      const keyIsArray = Array.isArray(key);
 
-      items.forEach((item) => callback(this.#objectAt(item, index), item));
+      if (key === '*' || (keyIsArray && key[0] === '*')) { return this.#list; }
 
-      return this;
-   }
+      const results = new HashArray<T>(this.#keyFields);
 
-   /**
-    * @returns {IterableIterator<[string, T[]]>} An entries iterator w/ key and all associated values.
-    */
-   entries(): IterableIterator<[string, T[]]>
-   {
-      return this.#map.entries();
-   }
-
-   /**
-    * @returns {Generator<[string, T], void, unknown>} Generator of flattened entries.
-    * @yields {[string, T]}
-    */
-   *entriesFlat(): IterableIterator<[string, T]>
-   {
-      for (const key of this.#map.keys())
+      if (keyIsArray)
       {
-         const items = this.#map.get(key);
-         for (const item of items) { yield [key, item]; }
+         for (const index of key) { results.add(this.getAsArray(index)); }
       }
-   }
-
-   /**
-    * @returns {IterableIterator<string>} A keys iterator.
-    */
-   keys(): IterableIterator<string>
-   {
-      return this.#map.keys();
-   }
-
-   /**
-    * @returns {IterableIterator<T[]>} A values iterator / all items values grouped by key.
-    */
-   values(): IterableIterator<T[]>
-   {
-      return this.#map.values();
-   }
-
-   /**
-    * @returns {IterableIterator<T>} A flat values iterator by default in order added.
-    */
-   valuesFlat(): IterableIterator<T>
-   {
-      return this.#list.values();
-   }
-
-   // -----------------------------------
-   // Mathematical
-   // -----------------------------------
-
-   /**
-    * Iterates deeply over items specified by `key` and `index` with an optional `weightKey` and calculates the
-    * average value.
-    *
-    * @param {Key}   key - The Key to retrieve item(s) to iterate.
-    *
-    * @param {Key}   index - A specific Key in each item to lookup.
-    *
-    * @param {Key}   [weightKey] - A specific Key in each item to provide a weighting value.
-    *
-    * @returns {number} The average value for the given iteration.
-    */
-   average(key: Key, index: Key, weightKey?: Key): number
-   {
-      let ret = 0;
-      let tot = 0;
-      let weightsTotal = 0;
-
-      if (weightKey !== void 0) { this.forEachDeep(key, weightKey, (value) => weightsTotal += value); }
-
-      this.forEachDeep(key, index, (value, item) =>
+      else
       {
-         if (weightKey !== void 0) { value *= (this.#objectAt(item, weightKey) / weightsTotal); }
+         results.add(this.getAsArray(key));
+      }
 
-         ret += value;
-         tot++;
-      });
-
-      return weightKey !== undefined ? ret : ret / tot;
+      return results.#list;
    }
 
    /**
-    * Iterates deeply over items specified by `key` and `index` with an optional `weightKey` and calculates the sum.
+    * Gets item(s) by the given key always returning an array including an empty array when key is not in the HashArray.
     *
-    * @param {Key}   key - The Key to retrieve item(s) to iterate.
+    * @param {string}   key - The key for item(s) to retrieve.
     *
-    * @param {Key}   index - A specific Key in each item to lookup.
-    *
-    * @param {Key}   [weightKey] - A specific Key in each item to provide a weighting value.
-    *
-    * @returns {number} The sum for the given iteration.
+    * @returns {T[]} All items for key or empty array.
     */
-   sum(key: Key, index: Key, weightKey?: Key): number
+   getAsArray(key: string): T[]
    {
-      let ret = 0;
+      return this.#map.get(key) ?? [];
+   }
 
-      this.forEachDeep(key, index, (value, item) =>
+   // ----------------------------------------------------------------------------------------------------------------
+   // Set Operations
+   // ----------------------------------------------------------------------------------------------------------------
+
+   /**
+    * Returns the difference of this HashArray and a target HashArray.
+    *
+    * @param {HashArray<T>}   target - Another HashArray.
+    *
+    * @returns {HashArray<T>} Returns a new HashArray that contains the difference between this
+    *          HashArray (A) and the target HashArray passed in (B). Returns A - B.
+    */
+   difference(target: HashArray<T>): HashArray<T>
+   {
+      if (!target || !(target instanceof HashArray)) { throw new TypeError(`'target' must be a HashArray.`); }
+
+      const ret = this.clone();
+
+      for (let i = this.#list.length; --i >= 0;)
       {
-         if (weightKey !== void 0) { value *= this.#objectAt(item, weightKey); }
-
-         ret += value;
-      });
+         if (!target.collides(this.#list[i])) { ret.add(this.#list[i]); }
+      }
 
       return ret;
    }
 
-   // -----------------------------------
-   // Filtering
-   // -----------------------------------
-
    /**
-    * Filters this HashArray returning a new HashArray with the items that pass the given filter test.
+    * Returns the intersection of this HashArray and a target HashArray.
     *
-    * @param {Key}   key - The Key to retrieve item(s) to iterate.
+    * @param {HashArray<T>}   target - Another HashArray.
     *
-    * @param {Key | ((T) => boolean)}  callbackOrIndex - A Key to lookup for filter inclusion or a callback function
-    *        returning the filter result for the item.
+    * @returns {HashArray<T>} Returns a new HashArray that contains the intersection between this (A) and the HashArray
+    *          passed in (B). Returns A ^ B.
     */
-   filter(key: Key, callbackOrIndex: Key | ((T) => boolean)): HashArray<T>
+   intersection(target: HashArray<T>): HashArray<T>
    {
-      const callback = typeof callbackOrIndex === 'function' ? callbackOrIndex : (item) =>
+      if (!target || !(target instanceof HashArray)) { throw new TypeError(`'target' must be a HashArray.`); }
+
+      const result = new HashArray<T>(this.#keyFields, this.#options);
+
+      for (const item of this.#list)
       {
-         const val = this.#objectAt(item, callbackOrIndex);
-         return val !== void 0 && val !== false;
-      };
+         for (const keyField of this.#keyFields)
+         {
+            const key = this.#objectAt(item, keyField);
 
-      const ha = new HashArray<T>(klona(this.#keyFields));
-      ha.add(this.getAll(key).filter(callback));
+            if (key && this.#map.get(key)?.includes?.(item) && target.#map.get(key)?.includes?.(item))
+            {
+               result.add(item);
+               break;
+            }
+         }
+      }
 
-      return ha;
+      return result;
    }
 
    // Internal -------------------------------------------------------------------------------------------------------
