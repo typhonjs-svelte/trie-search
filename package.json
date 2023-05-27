@@ -35,6 +35,7 @@
   ],
   "browserslist": [">5%", "not IE 11"],
   "scripts": {
+    "rollup": "rollup -c",
     "eslint": "eslint .",
     "prepublishOnly": "npm run eslint && npm run build && npm run test",
     "test": "vitest",
