@@ -17,25 +17,56 @@ describe('HashArray API Tests', () =>
          {
             const ha = new HashArray(['key']);
 
-            it('Should have a size of 0.', () => assert.equal(ha.sizeFlat, 0));
-
-            it('Should have a map with no keys.', () =>
-            {
-               for (const key of ha.keys()) { assert.equal(true, false); } // eslint-disable-line no-unused-vars
-            });
+            it('Should have a map with no keys.', () => assert.equal([...ha.keys()].length, 0));
 
             const ha2 = new HashArray('key');
 
-            it('should work with a single key not wrapped in an array.',
+            it('Should work with a single key not wrapped in an array.',
              () => assert.deepEqual(ha2.keyFields, ['key']));
          });
-      })
+      });
+
+      describe('Accessors', () =>
+      {
+         const keyFields = ['key', ['key', 'key2']];
+         const ha = new HashArray<Item>(keyFields);
+         const item: Item = { key: 'blah' };
+
+         it('Should deepEqual keyFields', () => assert.deepEqual(ha.keyFields, keyFields));
+
+         it('Should be a clone of keyFields', () => assert.notEqual(ha.keyFields, keyFields));
+
+         it('Should have a size of 0.', () => assert.equal(ha.size, 0));
+
+         it('Should have a sizeFlat of 0.', () => assert.equal(ha.sizeFlat, 0));
+
+         it('Should have a size of 1.', () => {
+            ha.add(item);
+            ha.add({ key: 'blah' });
+            assert.equal(ha.size, 1)
+         });
+
+         it('Should have a sizeFlat of 2.', () => assert.equal(ha.sizeFlat, 2));
+
+         it('Should have a size of 1.', () => {
+            ha.remove(item);
+            assert.equal(ha.size, 1)
+         });
+
+         it('Should have a sizeFlat of 1.', () => assert.equal(ha.sizeFlat, 1));
+
+         it('Should have a size of 0.', () => {
+            ha.clear();
+            assert.equal(ha.size, 0)
+         });
+
+         it('Should have a sizeFlat of 0.', () => assert.equal(ha.sizeFlat, 0));
+      });
 
       describe('This Return Values', () =>
       {
          const ha = new HashArray<Item>('key');
          const item = { key: 'blah' };
-         const item2 = { key: 'blah2' };
 
          it('add(...) should return this', () => assert(ha.add(item) === ha));
 
