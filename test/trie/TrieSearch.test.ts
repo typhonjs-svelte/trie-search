@@ -58,12 +58,12 @@ describe('TrieSearch', () =>
       });
    });
 
-   describe('TrieSearch::addAll(...)should work for an array', () =>
+   describe('TrieSearch::add(...)should work for an array', () =>
    {
       const ts = new TrieSearch('key');
       const items = [{ key: 'addendum' }, { key: 'banana' }, { key: 'cat' }];
 
-      ts.addAll(items);
+      ts.add(items);
 
       it(`search('blah') for each subkey should work`, () =>
       {
@@ -411,38 +411,6 @@ describe('TrieSearch', () =>
       });
    });
 
-   describe('add(...) and search(...) should work with customKeys', () =>
-   {
-      const ts = new TrieSearch('key', { min: 2 });
-      const item1 = { customKey1: 'I am item1!', customKey2: '123' };
-      const item2 = { customKey1: 'I am item2!', customKey2: '456' };
-
-      ts.add(item1, ['customKey1']);
-      ts.add(item2, ['customKey1', 'customKey2']);
-
-      it('add(item1) and add(item2) should build map of nodes', () =>
-      {
-         expect(ts.root['i']).to.be.undefined;
-         expect(ts.root['am']).to.exist;
-
-         expect(ts.root['it']['e']['m']['1']).to.exist;
-         expect(ts.root['it']['e']['m']['2']).to.exist;
-
-         expect(ts.root['12']).to.be.undefined;
-         expect(ts.root['45']['6']).to.exist;
-      });
-
-      it(`search('i') should return 0 items`, () =>
-      {
-         expect(ts.search('i').length).to.equal(0);
-         expect(ts.search('item').length).to.equal(2);
-      });
-
-      it(`search('123') should return 0 items`, () => expect(ts.search('123').length).to.equal(0));
-
-      it(`search('45') should return 1 items`, () => expect(ts.search('456').length).to.equal(1));
-   });
-
    describe('search(...) should work with a custom reducer and accumulator', () =>
    {
       const ts = new TrieSearch('key', { min: 2, idFieldOrFunction: 'key' });
@@ -460,7 +428,7 @@ describe('TrieSearch', () =>
 
       it(`search('robin', [reducer])`, () =>
       {
-         const result = ts.search('robin', (_accumulator, phrase, phraseMatches, trie) =>
+         const result = ts.search('robin', { reducer: (_accumulator, phrase, phraseMatches, trie) =>
          {
             expect(_accumulator).to.be.undefined;
             expect(phrase).to.equal('robin');
@@ -474,7 +442,7 @@ describe('TrieSearch', () =>
             _accumulator.push(phraseMatches[0]);
 
             return _accumulator;
-         });
+         }});
 
          expect(result.length).to.equal(2);
          expect(result[0]).to.equal(item1);
@@ -483,7 +451,7 @@ describe('TrieSearch', () =>
 
       it(`search(['red', 'robin'], TrieSearch.UNION_REDUCER)`, () =>
       {
-         const result = ts.search(['red', 'robin'], TrieSearch.UNION_REDUCER);
+         const result = ts.search(['red', 'robin'], { reducer: TrieSearch.UNION_REDUCER });
 
          expect(result.length).not.to.equal(0);
          expect(result[0]).to.equal(item1);
@@ -491,7 +459,7 @@ describe('TrieSearch', () =>
 
       it(`search(['green'], TrieSearch.UNION_REDUCER)`, () =>
       {
-         const result = ts.search(['green'], TrieSearch.UNION_REDUCER);
+         const result = ts.search(['green'], { reducer: TrieSearch.UNION_REDUCER });
 
          expect(result.length).to.equal(2);
          expect(result[0]).to.equal(item3);
@@ -500,7 +468,7 @@ describe('TrieSearch', () =>
 
       it(`search('green', TrieSearch.UNION_REDUCER)`, () =>
       {
-         const result = ts.search('green', TrieSearch.UNION_REDUCER);
+         const result = ts.search('green', { reducer: TrieSearch.UNION_REDUCER });
 
          expect(result.length).to.equal(2);
          expect(result[0]).to.equal(item3);
@@ -509,28 +477,28 @@ describe('TrieSearch', () =>
 
       it(`search('blue', TrieSearch.UNION_REDUCER)`, () =>
       {
-         const result = ts.search('blue', TrieSearch.UNION_REDUCER);
+         const result = ts.search('blue', { reducer: TrieSearch.UNION_REDUCER });
 
          expect(result.length).to.equal(0);
       });
 
       it(`search('am', TrieSearch.UNION_REDUCER)`, () =>
       {
-         const result = ts.search('am', TrieSearch.UNION_REDUCER);
+         const result = ts.search('am', { reducer: TrieSearch.UNION_REDUCER });
 
          expect(result.length).to.equal(4);
       });
 
       it(`search(['owl', 'card', 'cock', 'rob'], TrieSearch.UNION_REDUCER)`, () =>
       {
-         const result = ts.search(['owl', 'card', 'cock', 'rob'], TrieSearch.UNION_REDUCER);
+         const result = ts.search(['owl', 'card', 'cock', 'rob'], { reducer: TrieSearch.UNION_REDUCER });
 
          expect(result.length).to.equal(1);
       });
 
       it(`search(['owl', 'card', 'cock', 'rob', 'fubar'], TrieSearch.UNION_REDUCER)`, () =>
       {
-         const result = ts.search(['owl', 'card', 'cock', 'rob', 'fubar'], TrieSearch.UNION_REDUCER);
+         const result = ts.search(['owl', 'card', 'cock', 'rob', 'fubar'], { reducer: TrieSearch.UNION_REDUCER });
 
          expect(result.length).to.equal(0);
       });
@@ -553,12 +521,12 @@ describe('TrieSearch', () =>
       const Us_items =  us.map((letter) => ({ key: letter, arr: us }));
       const AEs_items = aes.map((letter) => ({ key: letter, arr: aes }));
 
-      ts.addAll(As_items);
-      ts.addAll(Es_items);
-      ts.addAll(Is_items);
-      ts.addAll(Os_items);
-      ts.addAll(Us_items);
-      ts.addAll(AEs_items);
+      ts.add(As_items);
+      ts.add(Es_items);
+      ts.add(Is_items);
+      ts.add(Os_items);
+      ts.add(Us_items);
+      ts.add(AEs_items);
 
       it(`Should return international items for 'a' -> any of '${as}'`, () =>
       {
@@ -692,35 +660,32 @@ describe('TrieSearch', () =>
    {
       // NOTE: Cache is set to true since caching also needs to be tested
       const ts = new TrieSearch(null, { cache: true });
-      const obj = {
-         a: ['data'],
-         ab: ['data'],
-         abc: ['data'],
-         abcd: ['data'],
-         abcde: ['data'],
-         abcdef: ['data'],
-      };
 
-      ts.addFromObject(obj);
+      ts.map('a', ['data']);
+      ts.map('ab', ['data']);
+      ts.map('abc', ['data']);
+      ts.map('abcd', ['data']);
+      ts.map('abcde', ['data']);
+      ts.map('abcdef', ['data']);
 
       it('Get with limits and get without limits should work properly', () =>
       {
          const getWithoutLimit = ts.search('a');
          expect(getWithoutLimit.length).to.equal(6);
 
-         const getWithLimitResp = ts.search('a', null, 4);
+         const getWithLimitResp = ts.search('a', { limit: 4 });
          expect(getWithLimitResp.length).to.equal(4);
       });
 
       it('Failure case with limits should work properly', () =>
       {
-         const getWithLimit = ts.search('b', null, 4);
+         const getWithLimit = ts.search('b', { limit: 4 });
          expect(getWithLimit.length).to.equal(0);
       });
 
       it('A bigger limit value than the actual amount of data must work properly', () =>
       {
-         const getWithLimit = ts.search('a', null, 100);
+         const getWithLimit = ts.search('a', { limit: 100 });
          expect(getWithLimit.length).to.equal(6);
       });
    });

@@ -1,4 +1,7 @@
-import { klona }     from '#runtime/util/object';
+import {
+   isIterable, isObject,
+   klona
+} from '#runtime/util/object';
 
 import { HashArray } from '../hash/HashArray';
 
@@ -14,7 +17,7 @@ export type TrieCacheEntry<T> = {
 /**
  * @template T
  */
-export class TrieSearch<T extends object>
+export class TrieSearch<T extends object | string>
 {
    readonly #cache: HashArray<TrieCacheEntry<T>>;
 
@@ -33,7 +36,7 @@ export class TrieSearch<T extends object>
     *
     * @param {TrieSearchOptions} [options] - Options.
     */
-   constructor(keyFields, options)
+   constructor(keyFields?: string | KeyFields, options?: TrieSearchOptions)
    {
       // Note: idFieldOrFunction not set / undefined default.
       this.#options = Object.assign({}, {
@@ -79,23 +82,36 @@ export class TrieSearch<T extends object>
    }
 
    /**
-    *
-    * @param {T}  item -
-    *
-    * @param {KeyFields}   customKeys -
+    * @param {...(T | Iterable<T>)}  items - Items to add.
     */
-   add(item: T, customKeys?: KeyFields): this
+   add(...items: (T | Iterable<T>)[]): this
    {
+      if (items.length === 0) { return; }
+
       if (this.#options.cache) { this.cache.clear(); }
 
-      // Someone might have called add via an array forEach where the second param is a number
-      if (typeof customKeys === 'number') { customKeys = void 0; }
-
-      const keyFields = customKeys ?? this.#keyFields;
-
-      for (const key of keyFields)
+      for (const itemOrList of items)
       {
-         let val = Array.isArray(key) ? TrieSearch.#deepLookup(item, key) : item[key];
+         if (isIterable(itemOrList))
+         {
+            for (const item of itemOrList) { this.#addOne(item); }
+         }
+         else
+         {
+            this.#addOne(itemOrList);
+         }
+      }
+
+      return this;
+   }
+
+   #addOne(item: T)
+   {
+      if (!isObject(item)) { throw new TypeError(`TrieSearch.add error: The add method only accepts objects.`); }
+
+      for (const key of this.#keyFields)
+      {
+         let val = Array.isArray(key) ? HashArray.objectAt(item, key) : item[key];
 
          if (!val) { continue; }
 
@@ -103,34 +119,8 @@ export class TrieSearch<T extends object>
 
          const expandedValues = this.#expandString(val);
 
-         for (let v = 0; v < expandedValues.length; v++)
-         {
-            this.map(expandedValues[v], item);
-         }
+         for (let v = 0; v < expandedValues.length; v++) { this.map(expandedValues[v], item); }
       }
-
-      return this;
-   }
-
-   addFromObject(obj, valueField)
-   {
-      if (this.#options.cache) { this.#cache.clear(); }
-
-      valueField = valueField ?? 'value';
-
-      if (this.#keyFields.indexOf('_key_') === -1) { this.#keyFields.push('_key_'); }
-
-      for (const key in obj)
-      {
-         const o = { _key_: key };
-         o[valueField] = obj[key];
-         this.add(o);
-      }
-   }
-
-   addAll(arr, customKeys)
-   {
-      for (let i = 0; i < arr.length; i++) { this.add(arr[i], customKeys); }
    }
 
    getId(item)
@@ -139,7 +129,7 @@ export class TrieSearch<T extends object>
        item[this.#options.idFieldOrFunction];
    }
 
-   map(key, value)
+   map(key: string, value: T)
    {
       if (this.#options.splitOnRegEx && this.#options.splitOnRegEx.test(key))
       {
@@ -209,7 +199,7 @@ export class TrieSearch<T extends object>
     *
     * @param {number}   limit -
     */
-   search(phrases, reducer, limit)
+   search(phrases, { reducer, limit }: { reducer?: Function, limit?: number } = {})
    {
       const haKeyFields = this.#options.indexField ? [this.#options.indexField] : this.#keyFields;
       let ret = void 0;
@@ -297,24 +287,6 @@ export class TrieSearch<T extends object>
    #cleanCache()
    {
       while (this.#cache.sizeFlat > this.#options.maxCacheSize) { this.#cache.removeFirst(); }
-   }
-
-   /**
-    * Given an array of keys iterate through the item to find the value referenced.
-    *
-    * @param {T}  item -
-    *
-    * @param {string[]} keys -
-    */
-   static #deepLookup<T>(item: T, keys: string[]): any
-   {
-      if (keys.length === 1) { return item[keys[0]]; }
-
-      let current = item[keys[0]];
-
-      for (let i = 1; i < keys.length; i++) { current = current[keys[i]]; }
-
-      return current;
    }
 
    /**
@@ -548,10 +520,10 @@ export type TrieSearchOptions = {
     * How phrases are split on search: default: `/\s/g`. By default, this is any whitespace. Set to `false` if you have
     * whitespace in your keys! Set it something else to split along other boundaries.
     */
-   splitOnRegEx?: RegExp;
+   splitOnRegEx?: RegExp | false;
 
    /**
     * How phrases are split on retrieval / get: default: `/\s/g`.
     */
-   splitOnGetRegEx?: RegExp;
+   splitOnGetRegEx?: RegExp | false;
 }
