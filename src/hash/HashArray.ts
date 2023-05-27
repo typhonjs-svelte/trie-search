@@ -85,23 +85,6 @@ export class HashArray<T extends object>
       return this;
    }
 
-   addDirect(key, items: T | Iterable<T>): this
-   {
-      const existingItems = this.#map.get(key);
-      if (existingItems)
-      {
-         if (isIterable(items)) { existingItems.push(...items); }
-         else { existingItems.push(items); }
-      }
-      else
-      {
-         if (isIterable(items)) { this.#map.set(key, [...items]); }
-         else { this.#map.set(key, [items]); }
-      }
-
-      return this;
-   }
-
    // ----------------------------------------------------------------------------------------------------------------
    // Cloning
    // ----------------------------------------------------------------------------------------------------------------
