@@ -14,13 +14,13 @@ export type TrieCacheEntry<T> = {
 /**
  * @template T
  */
-export class TrieSearch<T extends Object>
+export class TrieSearch<T extends object>
 {
    readonly #cache: HashArray<TrieCacheEntry<T>>;
 
    readonly #keyFields: KeyFields;
 
-   readonly #indexed: HashArray<T>;
+   #indexed: HashArray<T>;
 
    readonly #options;
 
