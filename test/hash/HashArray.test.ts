@@ -89,6 +89,16 @@ describe('HashArray API Tests', () =>
    {
       describe('add(items)', () =>
       {
+         describe('Should work with no items', () =>
+         {
+            const ha = new HashArray(['key']);
+            it('Should have a single item.', () =>
+            {
+               ha.add();
+               assert.equal(ha.sizeFlat, 0);
+            });
+         });
+
          describe('Should work with 1 item', () =>
          {
             const ha = new HashArray<Item>(['key']);
@@ -475,6 +485,204 @@ describe('HashArray API Tests', () =>
             });
          });
       });
+
+      describe('entries()', () =>
+      {
+         describe('Should work', () =>
+         {
+            const ha = new HashArray<Item>(['key']);
+
+            const items1: Item[] = [
+               { key: 'what' },
+               { key: 'what' },
+               { key: 'what' },
+            ];
+
+            const items2: Item[] = [
+               { key: 'what2' },
+               { key: 'what2' },
+               { key: 'what2' },
+            ];
+
+            ha.add(items1, items2);
+
+            it('Should have two entries results', () =>
+            {
+               const results = [...ha.entries()]
+
+               assert.equal(results.length, 2, 'does not have 2 entries');
+
+               assert.equal(results[0][0], 'what', 'entry 1 does not have correct key');
+               assert.deepEqual(results[0][1], items1, 'entry 1 does not have correct items');
+
+
+               assert.equal(results[1][0], 'what2', 'entry 2 does not have correct key');
+               assert.deepEqual(results[1][1], items2, 'entry 2 does not have correct items');
+            })
+         });
+      });
+
+      describe('entriesFlat()', () =>
+      {
+         describe('Should work', () =>
+         {
+            const ha = new HashArray<Item>(['key']);
+
+            const items1: Item[] = [
+               { key: 'what' },
+               { key: 'what' },
+               { key: 'what' },
+            ];
+
+            const items2: Item[] = [
+               { key: 'what2' },
+               { key: 'what2' },
+               { key: 'what2' },
+            ];
+
+            ha.add(items1, items2);
+
+            it('Should have six entries results', () =>
+            {
+               const results = [...ha.entriesFlat()]
+
+               assert.equal(results.length, 6, 'does not have 6 entries');
+
+               assert.equal(results[0][0], 'what', 'entry 1 does not have correct key');
+               assert.deepEqual(results[0][1], items1[0], 'entry 1 does not have correct item');
+
+               assert.equal(results[1][0], 'what', 'entry 2 does not have correct key');
+               assert.deepEqual(results[1][1], items1[1], 'entry 2 does not have correct item');
+
+               assert.equal(results[2][0], 'what', 'entry 3 does not have correct key');
+               assert.deepEqual(results[2][1], items1[2], 'entry 3 does not have correct item');
+
+               assert.equal(results[3][0], 'what2', 'entry 4 does not have correct key');
+               assert.deepEqual(results[3][1], items2[0], 'entry 4 does not have correct item');
+
+               assert.equal(results[4][0], 'what2', 'entry 5 does not have correct key');
+               assert.deepEqual(results[4][1], items2[1], 'entry 5 does not have correct item');
+
+               assert.equal(results[5][0], 'what2', 'entry 6 does not have correct key');
+               assert.deepEqual(results[5][1], items2[2], 'entry 6 does not have correct item');
+            })
+         });
+      });
+
+      describe('entriesFlat()', () =>
+      {
+         describe('Should work', () =>
+         {
+            const ha = new HashArray<Item>(['key']);
+
+            const items1: Item[] = [
+               { key: 'what' },
+               { key: 'what' },
+               { key: 'what' },
+            ];
+
+            const items2: Item[] = [
+               { key: 'what2' },
+               { key: 'what2' },
+               { key: 'what2' },
+            ];
+
+            ha.add(items1, items2);
+
+            it('Should have six entries results', () =>
+            {
+               const results = [...ha.entriesFlat()]
+
+               assert.equal(results.length, 6, 'does not have 6 entries');
+
+               assert.equal(results[0][0], 'what', 'entry 1 does not have correct key');
+               assert.deepEqual(results[0][1], items1[0], 'entry 1 does not have correct item');
+
+               assert.equal(results[1][0], 'what', 'entry 2 does not have correct key');
+               assert.deepEqual(results[1][1], items1[1], 'entry 2 does not have correct item');
+
+               assert.equal(results[2][0], 'what', 'entry 3 does not have correct key');
+               assert.deepEqual(results[2][1], items1[2], 'entry 3 does not have correct item');
+
+               assert.equal(results[3][0], 'what2', 'entry 4 does not have correct key');
+               assert.deepEqual(results[3][1], items2[0], 'entry 4 does not have correct item');
+
+               assert.equal(results[4][0], 'what2', 'entry 5 does not have correct key');
+               assert.deepEqual(results[4][1], items2[1], 'entry 5 does not have correct item');
+
+               assert.equal(results[5][0], 'what2', 'entry 6 does not have correct key');
+               assert.deepEqual(results[5][1], items2[2], 'entry 6 does not have correct item');
+            })
+         });
+      });
+
+      describe('values()', () =>
+      {
+         describe('Should work', () =>
+         {
+            const ha = new HashArray<Item>(['key']);
+
+            const items1: Item[] = [
+               { key: 'what' },
+               { key: 'what' },
+               { key: 'what' },
+            ];
+
+            const items2: Item[] = [
+               { key: 'what2' },
+               { key: 'what2' },
+               { key: 'what2' },
+            ];
+
+            ha.add(items1, items2);
+
+            it('Should have two values results', () =>
+            {
+               const results = [...ha.values()]
+
+               assert.equal(results.length, 2, 'does not have 2 values results');
+
+               assert.deepEqual(results[0], items1, 'value result 1 is not correct items');
+               assert.deepEqual(results[1], items2, 'value result 2 is not correct items');
+            })
+         });
+      });
+
+      describe('valuesFlat()', () =>
+      {
+         describe('Should work', () =>
+         {
+            const ha = new HashArray<Item>(['key']);
+
+            const items1: Item[] = [
+               { key: 'what' },
+               { key: 'what' },
+               { key: 'what' },
+            ];
+
+            const items2: Item[] = [
+               { key: 'what2' },
+               { key: 'what2' },
+               { key: 'what2' },
+            ];
+
+            ha.add(items1, items2);
+
+            it('Should have six entries results', () =>
+            {
+               const results = [...ha.valuesFlat()]
+
+               assert.equal(results.length, 6, 'does not have 6 items');
+
+               assert.deepEqual(results[0], items1[0], 'value 1 is not correct item');
+               assert.deepEqual(results[1], items1[1], 'value 2 is not correct item');
+               assert.deepEqual(results[2], items1[2], 'value 3 is not correct item');
+               assert.deepEqual(results[3], items2[0], 'value 4 is not correct item');
+               assert.deepEqual(results[4], items2[1], 'value 5 is not correct item');
+               assert.deepEqual(results[5], items2[2], 'value 6 is not correct item');
+            })
+         });
+      });
    });
 
    describe('Removing Items', () =>
@@ -494,15 +702,23 @@ describe('HashArray API Tests', () =>
 
             it('Should have 0 items after clear()', () => assert.equal(ha.sizeFlat, 0));
 
-            it('Should have a map with no keys.', () =>
-            {
-               for (const key of ha.keys()) { assert.equal(key, void 0); }
-            });
+            it('Should have a map with no keys.', () => assert.equal([...ha.keys()].length, 0));
          });
       });
 
       describe('removeByKeys(keys)', () =>
       {
+         describe('Should work with no items', () =>
+         {
+            const ha = new HashArray<Item>(['key']);
+
+            it('Should not throw', () =>
+            {
+               ha.removeByKey('whatever');
+               assert.equal(ha.sizeFlat, 0)
+            });
+         });
+
          describe('Should work with 1 item', () =>
          {
             const ha = new HashArray<Item>(['key']);
@@ -513,10 +729,7 @@ describe('HashArray API Tests', () =>
 
             it('Should have no items after remove by key', () => assert.equal(ha.sizeFlat, 0));
 
-            it('Should have a map with no keys.', () =>
-            {
-               for (const key of ha.keys()) { assert.equal(key, void 0); }
-            });
+            it('Should have a map with no keys.', () => assert.equal([...ha.keys()].length, 0));
          });
 
          describe('Should work with 1 item and multiple key depths', () =>
@@ -541,10 +754,7 @@ describe('HashArray API Tests', () =>
 
             it('Should have no items after remove by key', () => assert.equal(ha.sizeFlat, 0));
 
-            it('Should have a map with no keys.', () =>
-            {
-               for (const key of ha.keys()) { assert.equal(key, void 0); }
-            });
+            it('Should have a map with no keys.', () => assert.equal([...ha.keys()].length, 0));
          });
 
          describe('Should work with 4 items', () =>
@@ -575,6 +785,17 @@ describe('HashArray API Tests', () =>
 
       describe('remove(items)', () =>
       {
+         describe('Should work with no items', () =>
+         {
+            const ha = new HashArray<Item>(['key']);
+            const item = { key: 'whatever' };
+
+            it('Should have not throw', () => {
+               ha.remove(item);
+               assert.equal(ha.sizeFlat, 0)
+            });
+         });
+
          describe('Should work with 1 item', () =>
          {
             const ha = new HashArray<Item>(['key']);
@@ -586,10 +807,7 @@ describe('HashArray API Tests', () =>
 
             it('Should have no items after remove', () => assert.equal(ha.sizeFlat, 0));
 
-            it('Should have a map with no keys.', () =>
-            {
-               for (const key of ha.keys()) { assert.equal(key, void 0); }
-            });
+            it('Should have a map with no keys.', () => assert.equal([...ha.keys()].length, 0));
          });
 
          describe('Should work with 3 items', () =>
@@ -613,6 +831,106 @@ describe('HashArray API Tests', () =>
             {
                assert.equal(ha.get('whatever'), item1);
                assert.equal(ha.get('whatever3'), item3);
+            });
+         });
+      });
+
+      describe('removeFirst()', () =>
+      {
+         describe('Should work with no items', () =>
+         {
+            const ha = new HashArray<Item>(['key']);
+
+            it('Should not throw', () => {
+               ha.removeFirst();
+               assert.equal(ha.sizeFlat, 0)
+            });
+         });
+
+         describe('Should work with 1 item', () =>
+         {
+            const ha = new HashArray<Item>(['key']);
+            const item = { key: 'whatever' };
+
+            ha.add(item);
+
+            ha.removeFirst();
+
+            it('Should have no items after remove', () => assert.equal(ha.sizeFlat, 0));
+            it('Should have a map with no keys.', () => assert.equal([...ha.keys()].length, 0));
+         });
+
+         describe('Should work with 3 items', () =>
+         {
+            const ha = new HashArray<Item>(['key']);
+            const item1 = { key: 'whatever' };
+            const item2 = { key: 'whatever2' };
+            const item3 = { key: 'whatever3' };
+
+            ha.add(item1, item2, item3);
+
+            ha.removeFirst();
+
+            it('Should have 2 items after removal', () => assert.equal(ha.sizeFlat, 2));
+
+            it('Should have no key for removed item (has)', () => assert.equal(ha.has('whatever'), false));
+
+            it('Should have no key for removed item (get)', () => assert.equal(ha.get('whatever'), void 0));
+
+            it('Should have remaining two items by key', () =>
+            {
+               assert.equal(ha.get('whatever2'), item2);
+               assert.equal(ha.get('whatever3'), item3);
+            });
+         });
+      });
+
+      describe('removeLast()', () =>
+      {
+         describe('Should work with no items', () =>
+         {
+            const ha = new HashArray<Item>(['key']);
+
+            it('Should not throw', () => {
+               ha.removeLast();
+               assert.equal(ha.sizeFlat, 0)
+            });
+         });
+
+         describe('Should work with 1 item', () =>
+         {
+            const ha = new HashArray<Item>(['key']);
+            const item = { key: 'whatever' };
+
+            ha.add(item);
+
+            ha.removeLast();
+
+            it('Should have no items after removal', () => assert.equal(ha.sizeFlat, 0));
+            it('Should have a map with no keys.', () => assert.equal([...ha.keys()].length, 0));
+         });
+
+         describe('Should work with 3 items', () =>
+         {
+            const ha = new HashArray<Item>(['key']);
+            const item1 = { key: 'whatever' };
+            const item2 = { key: 'whatever2' };
+            const item3 = { key: 'whatever3' };
+
+            ha.add(item1, item2, item3);
+
+            ha.removeLast();
+
+            it('Should have 2 items after removal', () => assert.equal(ha.sizeFlat, 2));
+
+            it('Should have no key for removed item (has)', () => assert.equal(ha.has('whatever3'), false));
+
+            it('Should have no key for removed item (get)', () => assert.equal(ha.get('whatever3'), void 0));
+
+            it('Should have remaining two items by key', () =>
+            {
+               assert.equal(ha.get('whatever'), item1);
+               assert.equal(ha.get('whatever2'), item2);
             });
          });
       });
