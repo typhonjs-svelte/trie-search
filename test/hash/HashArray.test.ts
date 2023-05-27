@@ -1,4 +1,5 @@
 import { HashArray } from '../../src';
+import {describe} from "vitest";
 
 type Item = { key: string };
 type Item2 = { key1: string, key2: string };
@@ -938,6 +939,27 @@ describe('HashArray API Tests', () =>
 
    describe('Retrieving Items', () =>
    {
+      describe('get(key)', () =>
+      {
+         describe('Should work', () =>
+         {
+            const ha = new HashArray<People>(['firstName', 'lastName']);
+
+            const person1 = { firstName: 'Victor', lastName: 'Victor' };
+            const person2 = { firstName: 'Victor', lastName: 'Manning' };
+            const person3 = { firstName: 'Manning', lastName: 'Victor' };
+            const person4 = { firstName: 'John', lastName: 'Smith' };
+
+            ha.add(person1, person2, person3, person4);
+
+            it('Should retrieve only items for the keys requested without duplicates.', () =>
+            {
+               assert.equal((ha.get('Victor') as People[]).length, 3);
+               assert.equal(ha.get('John'), person4);
+            });
+         });
+      });
+
       describe('getAll(keys)', () =>
       {
          describe('Should work', () =>
@@ -955,6 +977,68 @@ describe('HashArray API Tests', () =>
             {
                assert.equal(ha.getAll(['Victor', 'Smith']).length, 4);
                assert.equal(ha.getAll(['John', 'Smith']).length, 1);
+               assert.equal(ha.getAll('John').length, 1);
+            });
+
+            it(`Should retrieve all items with '*'.`, () =>
+            {
+               assert.equal(ha.getAll('*').length, 4);
+            });
+
+            it(`Should retrieve all items with '[*]'.`, () =>
+            {
+               assert.equal(ha.getAll(['*']).length, 4);
+            });
+
+            it(`Should retrieve no results.`, () =>
+            {
+               assert.equal(ha.getAll(['bogus']).length, 0);
+            });
+         });
+      });
+
+      describe('getAsArray(key)', () =>
+      {
+         describe('Should work', () =>
+         {
+            const ha = new HashArray<People>(['firstName', 'lastName']);
+
+            const person1 = { firstName: 'Victor', lastName: 'Victor' };
+            const person2 = { firstName: 'Victor', lastName: 'Manning' };
+            const person3 = { firstName: 'John', lastName: 'Smith' };
+
+            ha.add(person1, person2, person3);
+
+            it('Should retrieve always retrieve as an array.', () =>
+            {
+               assert.equal(ha.getAsArray('Victor').length, 2);
+               assert.equal(ha.getAsArray('John').length, 1);
+            });
+
+            it(`Should retrieve no results.`, () =>
+            {
+               assert.equal(ha.getAsArray('bogus').length, 0);
+            });
+         });
+      });
+
+      describe('getAt(index)', () =>
+      {
+         describe('Should work', () =>
+         {
+            const ha = new HashArray<People>(['firstName', 'lastName']);
+
+            const person1 = { firstName: 'Victor', lastName: 'Victor' };
+            const person2 = { firstName: 'Victor', lastName: 'Manning' };
+            const person3 = { firstName: 'John', lastName: 'Smith' };
+
+            ha.add(person1, person2, person3);
+
+            it('Should retrieve items by index.', () =>
+            {
+               assert.equal(ha.getAt(0), person1);
+               assert.equal(ha.getAt(1), person2);
+               assert.equal(ha.getAt(2), person3);
             });
          });
       });
@@ -1010,6 +1094,51 @@ describe('HashArray API Tests', () =>
                assert(!intersection.collides(item2), 'does contain item2');
                assert(intersection.collides(item3), 'does not contain item3');
                assert(intersection.collides(item4), 'does not contain item4');
+            });
+         });
+      });
+   });
+
+   describe('Utility', () =>
+   {
+      describe('objectAt(item, Key)', () =>
+      {
+         describe('Should work', () =>
+         {
+            const deeper = { deeper: 100 };
+            const data = { key: { deep: deeper } };
+
+            it(`Should retrieve 'deeper'`, () =>
+            {
+               assert.equal(HashArray.objectAt(data, ['key', 'deep']), deeper);
+            });
+
+            it('Should return undefined for no continuation in keys', () =>
+            {
+               assert.isUndefined(HashArray.objectAt(data, ['key', 'deep', 'deeper', 'foo', 'bar']));
+            });
+
+            it('Should return undefined for no keys', () =>
+            {
+               assert.isUndefined(HashArray.objectAt(data, void 0));
+            });
+
+            it('Should return undefined for no keys', () =>
+            {
+               assert.isUndefined(HashArray.objectAt(data, []));
+            });
+
+            it('Should return undefined for bad key', () =>
+            {
+               assert.isUndefined(HashArray.objectAt(data, ['key', null]));
+            });
+
+            it('Should return undefined for bad path', () =>
+            {
+               assert.isUndefined(HashArray.objectAt(data, 'bogus'));
+               assert.isUndefined(HashArray.objectAt(data, ['bogus']));
+               assert.isUndefined(HashArray.objectAt(data, ['key', 'bogus']));
+               assert.isUndefined(HashArray.objectAt(data, ['key', 'deep', 'bogus']));
             });
          });
       });
