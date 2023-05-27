@@ -23,7 +23,7 @@ export class TrieSearch<T extends object>
 
    readonly #keyFields: KeyFields;
 
-   #indexed: HashArray<T>;
+   #indexField: string[];
 
    readonly #options;
 
@@ -38,14 +38,14 @@ export class TrieSearch<T extends object>
     */
    constructor(keyFields?: string | KeyFields, options?: TrieSearchOptions)
    {
+      this.#keyFields = keyFields ? (Array.isArray(keyFields) ? keyFields : [keyFields]) : [];
+
       // Note: idFieldOrFunction not set / undefined default.
       this.#options = Object.assign({}, {
          cache: true,
          expandRegexes: TrieSearch.#DEFAULT_INTERNATIONALIZE_EXPAND_REGEXES,
          ignoreCase: true,
          insertFullUnsplitKey: false,
-         keepAll: false,
-         keepAllKey: 'id',
          maxCacheSize: TrieSearch.#MAX_CACHE_SIZE,
          min: 1,
          splitOnRegEx: /\s/g,
@@ -54,19 +54,18 @@ export class TrieSearch<T extends object>
       // Fallback to `splitOnRegEx` if `splitOnGetRegEx` not defined.
       this.#options.splitOnGetRegEx = options?.splitOnGetRegEx ?? this.#options.splitOnRegEx;
 
-      this.#keyFields = keyFields ? (Array.isArray(keyFields) ? keyFields : [keyFields]) : [];
       this.#root = {};
       this.#size = 0;
 
       if (this.#options.cache) { this.#cache = new HashArray('key'); }
    }
 
-   get cache()
+   get cache(): HashArray<TrieCacheEntry<T>>
    {
       return this.#cache;
    }
 
-   get keyFields()
+   get keyFields(): KeyFields
    {
       return klona(this.#keyFields);
    }
@@ -76,7 +75,7 @@ export class TrieSearch<T extends object>
       return this.#root;
    }
 
-   get size()
+   get size(): number
    {
       return this.#size;
    }
@@ -105,7 +104,7 @@ export class TrieSearch<T extends object>
       return this;
    }
 
-   map(key: string, value: T)
+   map(key: string, value: T): this
    {
       if (this.#options.splitOnRegEx && this.#options.splitOnRegEx.test(key))
       {
@@ -129,12 +128,6 @@ export class TrieSearch<T extends object>
       }
 
       if (this.#options.cache) { this.#cache.clear(); }
-
-      if (this.#options.keepAll)
-      {
-         this.#indexed = this.#indexed ?? new HashArray([this.#options.keepAllKey]);
-         this.#indexed.add(value);
-      }
 
       if (this.#options.ignoreCase) { key = key.toLowerCase(); }
 
@@ -160,12 +153,16 @@ export class TrieSearch<T extends object>
 
          insert(keyArr, value, node[k]);
       }
+
+      return this;
    }
 
-   clear()
+   clear(): this
    {
       this.#root = {};
       this.#size = 0;
+
+      return this;
    }
 
    /**
@@ -173,11 +170,13 @@ export class TrieSearch<T extends object>
     *
     * @param {object} [options] - Search Options.
     *
-    * @param reducer
+    * @param {TrieReducerFn<T>}  [options.reducer] -
     *
-    * @param {number}   limit -
+    * @param {number}            [options.limit] -
+    *
+    * @returns {T[]} Found matches.
     */
-   search(phrases, { reducer, limit }: { reducer?: Function, limit?: number } = {})
+   search(phrases, { reducer, limit }: { reducer?: TrieReducerFn<T>, limit?: number } = {})
    {
       const haKeyFields = this.#options.indexField ? [this.#options.indexField] : this.#keyFields;
       let ret = void 0;
@@ -326,7 +325,7 @@ export class TrieSearch<T extends object>
    {
       return f(this.#keyToArr(key), this.#root);
 
-      function f(keyArr, node)
+      function f(keyArr: string[], node)
       {
          if (!node) { return void 0; }
          if (keyArr.length === 0) { return node; }
@@ -486,16 +485,6 @@ export type TrieSearchOptions = {
    insertFullUnsplitKey?: boolean;
 
    /**
-    * Default: false
-    */
-   keepAll?: boolean;
-
-   /**
-    * Default: 'id'
-    */
-   keepAllKey?: string;
-
-   /**
     * The max cache size before removing entries in a FIFO manner; default: 64.
     */
    maxCacheSize?: number;
@@ -517,3 +506,6 @@ export type TrieSearchOptions = {
     */
    splitOnGetRegEx?: RegExp | false;
 }
+
+export type TrieReducerFn<T extends object> =
+ (accumulator: T[], phrase: string, matches: T[], indexField: string) => T[];
