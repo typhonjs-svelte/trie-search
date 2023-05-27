@@ -178,10 +178,26 @@ export class TrieSearch<T extends object>
     *
     * @returns {T[]} Found matches.
     */
-   search(phrases, { reducer, limit }: { reducer?: TrieReducerFn<T>, limit?: number } = {})
+   search(phrases, options)
+   {
+      return [...this.searchIter(phrases, options)];
+   }
+
+   /**
+    * @param {string | Iterable<string>}  phrases -
+    *
+    * @param {object} [options] - Search Options.
+    *
+    * @param {TrieReducerFn<T>}  [options.reducer] -
+    *
+    * @param {number}            [options.limit] -
+    *
+    * @returns {T[]} Found matches.
+    */
+   searchIter(phrases, { reducer, limit }: { reducer?: TrieReducerFn<T>, limit?: number } = {})
    {
       const haKeyFields = this.#indexField ? this.#indexField : this.#keyFields;
-      let ret = void 0;
+      let results = void 0;
       let accumulator = void 0;
 
       if (reducer && !this.#indexField)
@@ -201,12 +217,11 @@ export class TrieSearch<T extends object>
          }
          else
          {
-            ret = ret ? ret.add(matches) : new HashArray(haKeyFields).add(matches);
+            results = results ? results.add(matches) : new HashArray(haKeyFields).add(matches);
          }
       }
 
-      // TODO pass back iterator? Could make further sorting harder.
-      return !reducer ? [...ret.valuesFlat()] : accumulator;
+      return !reducer ? results.valuesFlat() : accumulator;
    }
 
    static UNION_REDUCER(accumulator, phrase, matches, indexField)
