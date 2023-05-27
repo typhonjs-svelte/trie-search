@@ -54,6 +54,8 @@ export class TrieSearch<T extends object>
       // Fallback to `splitOnRegEx` if `splitOnGetRegEx` not defined.
       this.#options.splitOnGetRegEx = options?.splitOnGetRegEx ?? this.#options.splitOnRegEx;
 
+      if (typeof options?.indexField === 'string') { this.#indexField = [options.indexField]; }
+
       this.#root = {};
       this.#size = 0;
 
@@ -178,13 +180,13 @@ export class TrieSearch<T extends object>
     */
    search(phrases, { reducer, limit }: { reducer?: TrieReducerFn<T>, limit?: number } = {})
    {
-      const haKeyFields = this.#options.indexField ? [this.#options.indexField] : this.#keyFields;
+      const haKeyFields = this.#indexField ? this.#indexField : this.#keyFields;
       let ret = void 0;
       let accumulator = void 0;
 
-      if (reducer && !this.#options.indexField)
+      if (reducer && !this.#indexField)
       {
-         throw new Error(`To use the accumulator you must specify the 'indexField' option.`);
+         throw new Error(`TrieSearch.search error: To use a reducer you must specify the 'indexField' option.`);
       }
 
       phrases = Array.isArray(phrases) ? phrases : [phrases];
@@ -195,7 +197,7 @@ export class TrieSearch<T extends object>
 
          if (reducer)
          {
-            accumulator = reducer(accumulator, phrases[i], matches, this.#options.indexField);
+            accumulator = reducer(accumulator, phrases[i], matches, this.#indexField[0]);
          }
          else
          {
@@ -364,7 +366,7 @@ export class TrieSearch<T extends object>
 
       let ret = void 0;
 
-      const haKeyFields = this.#options.indexField ? [this.#options.indexField] : this.#keyFields;
+      const haKeyFields = this.#indexField ? this.#indexField : this.#keyFields;
       const words = this.#options.splitOnGetRegEx ? phrase.split(this.#options.splitOnGetRegEx) : [phrase];
 
       for (let l = words.length, w = 0; w < l; w++)
