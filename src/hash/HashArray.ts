@@ -66,7 +66,7 @@ export class HashArray<T extends object>
    /**
     * @returns {number} The mapped size; number of keys in HashArray.
     */
-   get size()
+   get size(): number
    {
       return this.#map.size;
    }
@@ -74,7 +74,7 @@ export class HashArray<T extends object>
    /**
     * @returns {number} The flattened size; number of items in HashArray.
     */
-   get sizeFlat()
+   get sizeFlat(): number
    {
       return this.#list.length;
    }
@@ -90,6 +90,8 @@ export class HashArray<T extends object>
     */
    add(...items: (T | Iterable<T>)[]): this
    {
+      if (items.length === 0) { return; }
+
       for (const itemOrList of items)
       {
          if (isIterable(itemOrList))
@@ -368,18 +370,26 @@ export class HashArray<T extends object>
 
    /**
     * When treating HashArray as a cache removing the first item removes the oldest item.
+    *
+    * @returns {HashArray<T>} This instance.
     */
-   removeFirst()
+   removeFirst(): this
    {
       if (this.#list.length) { this.remove(this.#list[0]); }
+
+      return this;
    }
 
    /**
     * When treating HashArray as a cache removing the last item removes the newest item.
+    *
+    * @returns {HashArray<T>} This instance.
     */
-   removeLast()
+   removeLast(): this
    {
       if (this.#list.length) { this.remove(this.#list[this.#list.length - 1]); }
+
+      return this;
    }
 
    // ----------------------------------------------------------------------------------------------------------------
@@ -405,25 +415,25 @@ export class HashArray<T extends object>
    /**
     * Gets all items stored by the given Key. You may pass `*` as a wildcard for all items.
     *
-    * @param {Key}   key - The Key for item(s) to retrieve.
+    * @param {Key}   keys - The Key for item(s) to retrieve.
     *
     * @returns {T[]} All item(s) for the given Key.
     */
-   getAll(key: Key): T[]
+   getAll(keys: Key): T[]
    {
-      const keyIsArray = Array.isArray(key);
+      const keysIsArray = Array.isArray(keys);
 
-      if (key === '*' || (keyIsArray && key[0] === '*')) { return this.#list; }
+      if (keys === '*' || (keysIsArray && keys[0] === '*')) { return this.#list; }
 
       const results = new HashArray<T>(this.#keyFields);
 
-      if (keyIsArray)
+      if (keysIsArray)
       {
-         for (const index of key) { results.add(this.get(index)); }
+         for (const key of keys) { results.add(this.get(key)); }
       }
       else
       {
-         results.add(this.get(key));
+         results.add(this.get(keys));
       }
 
       return results.#list;
@@ -524,6 +534,10 @@ export class HashArray<T extends object>
     */
    #addOne(item: T)
    {
+      if (!item) { return; }
+
+      if (!isObject(item)) { throw new TypeError(`HashArray.#addOne error: 'item' is not an object.`); }
+
       let added = true;
 
       for (const keyField of this.#keyFields)

@@ -71,13 +71,17 @@ describe('HashArray API Tests', () =>
 
          it('clear(...) should return this', () => assert(ha.clear() === ha));
 
-         // it('forEach(...) should return this', () => assert(ha.forEach('', () => void 0) === ha));
+         it('forEach(...) should return this', () => assert(ha.forEach('', () => void 0) === ha));
 
-         // it('forEachDeep(...) should return this', () => assert(ha.forEachDeep('', '', () => void 0) === ha));
+         it('forEachDeep(...) should return this', () => assert(ha.forEachDeep('', '', () => void 0) === ha));
 
          it('remove(...) should return this', () => assert(ha.remove(item) === ha));
 
          it('removeByKey(...) should return this', () => assert(ha.removeByKey('blah2') === ha));
+
+         it('removeFirst() should return this', () => assert(ha.removeFirst() === ha));
+
+         it('removeLast() should return this', () => assert(ha.removeLast() === ha));
       });
    });
 
