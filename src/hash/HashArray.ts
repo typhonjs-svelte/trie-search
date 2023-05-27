@@ -50,6 +50,16 @@ export class HashArray<T extends object>
     */
    constructor(keyFields?: string | KeyFields, options?: HashArrayOptions)
    {
+      if (keyFields !== void 0 && typeof keyFields !== 'string' && !Array.isArray(keyFields))
+      {
+         throw new TypeError(`HashArray.construct error: 'keyFields' is not a string or array.`);
+      }
+
+      if (options !== void 0 && !isObject(options))
+      {
+         throw new TypeError(`HashArray.construct error: 'options' is not an object.`);
+      }
+
       this.#keyFields = Array.isArray(keyFields) ? keyFields : [keyFields];
 
       this.#options = Object.assign({}, { ignoreDuplicates: false }, options);
@@ -570,10 +580,6 @@ export class HashArray<T extends object>
     */
    #addOne(item: T)
    {
-      if (!item) { return; }
-
-      if (!isObject(item)) { throw new TypeError(`HashArray.#addOne error: 'item' is not an object.`); }
-
       let added = true;
 
       for (const keyField of this.#keyFields)
