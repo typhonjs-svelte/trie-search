@@ -291,7 +291,7 @@ describe('HashArray API Tests', () =>
          ha.add(item, item2);
 
          it('clone(HashArray.CloneOps.SHALLOW) should have items and they are same item instance', () => {
-            const haClone = ha.clone(HashArray.CloneOps.SHALLOW);
+            const haClone = ha.clone({ items: HashArray.CloneOps.SHALLOW });
 
             assert.equal(haClone.sizeFlat, 2);
 
@@ -303,7 +303,7 @@ describe('HashArray API Tests', () =>
          });
 
          it('clone(HashArray.CloneOps.DEEP) Should have items and they are cloned', () => {
-            const haClone = ha.clone(HashArray.CloneOps.DEEP);
+            const haClone = ha.clone({ items: HashArray.CloneOps.DEEP });
 
             assert.equal(haClone.sizeFlat, 2);
 
@@ -330,7 +330,7 @@ describe('HashArray API Tests', () =>
          ha.add(item, item2);
 
          it('clone(HashArray.CloneOps.SHALLOW) should have items and they are same item instance', () => {
-            const haClone = ha.clone(HashArray.CloneOps.SHALLOW);
+            const haClone = ha.clone({ items: HashArray.CloneOps.SHALLOW });
 
             assert.equal(haClone.sizeFlat, 2);
 
@@ -348,7 +348,7 @@ describe('HashArray API Tests', () =>
          });
 
          it('clone(HashArray.CloneOps.DEEP) Should have items and they are cloned', () => {
-            const haClone = ha.clone(HashArray.CloneOps.DEEP);
+            const haClone = ha.clone({ items: HashArray.CloneOps.DEEP });
 
             assert.equal(haClone.sizeFlat, 2);
 

@@ -37,18 +37,18 @@ export class HashArray<T extends object>
 
    readonly #keyFields: KeyFields;
 
-   readonly #list: T[] = [];
+   readonly #list: T[];
 
    readonly #map: Map<string, T[]> = new Map<string, T[]>();
 
-   readonly #options: HashArrayOptions;
+   readonly #options: HashArrayOptions<T> = {};
 
    /**
     * @param {string | KeyFields} [keyFields] -
     *
-    * @param {HashArrayOptions}   [options] - Options.
+    * @param {HashArrayOptions<T>}   [options] - Options.
     */
-   constructor(keyFields?: string | KeyFields, options?: HashArrayOptions)
+   constructor(keyFields?: string | KeyFields, options?: HashArrayOptions<T>)
    {
       if (keyFields !== void 0 && typeof keyFields !== 'string' && !Array.isArray(keyFields))
       {
@@ -62,7 +62,9 @@ export class HashArray<T extends object>
 
       this.#keyFields = Array.isArray(keyFields) ? keyFields : [keyFields];
 
-      this.#options = Object.assign({}, { ignoreDuplicates: false }, options);
+      if (typeof options?.ignoreDuplicates === 'boolean') { this.#options.ignoreDuplicates = options.ignoreDuplicates; }
+
+      this.#list = Array.isArray(options?.list) ? options.list : [];
    }
 
    /**
@@ -125,13 +127,18 @@ export class HashArray<T extends object>
     * Clones this HashArray. By default, this returns an empty HashArray with cloned KeyFields. Set `items` in options
     * to true to copy the items. If you need to clone each item then set `cloneItems` to true as well.
     *
-    * @param {HashArray.CloneOps}   [items=HashArray.CloneOps.NONE] - Clone operation for items. By default, no items
-    *        are included in the clone. Supply `SHALLOW` and items are copied. Supply `DEEP` and items are cloned as
-    *        well.
+    * @param {object}               [opts] - Optional parameters.
+    *
+    * @param {HashArray.CloneOps}   [opts.items=HashArray.CloneOps.NONE] - Clone operation for items. By default,
+    *        no items are included in the clone. Supply `SHALLOW` and items are copied. Supply `DEEP` and items are
+    *        cloned as well.
+    *
+    * @param {HashArrayOptions<T>}  [opts.options] - Optional change to options for the clone that is merged with current
+    *        HashArray options.
     */
-   clone(items: CloneOps = CloneOps.NONE): HashArray<T>
+   clone({ items = CloneOps.NONE, options }: { items?: CloneOps, options?: HashArrayOptions<T>} = {}): HashArray<T>
    {
-      const result = new HashArray<T>(klona(this.#keyFields), this.#options);
+      const result = new HashArray<T>(klona(this.#keyFields), Object.assign({}, options, this.#options));
 
       switch (items)
       {
@@ -507,17 +514,17 @@ export class HashArray<T extends object>
     *
     * @param {HashArray<T>}   target - Another HashArray.
     *
+    * @param {HashArray<T>}   [output] - Optional output HashArray.
+    *
     * @returns {HashArray<T>} Returns a new HashArray that contains the intersection between this (A) and the HashArray
     *          passed in (B). Returns A ^ B.
     */
-   intersection(target: HashArray<T>): HashArray<T>
+   intersection(target: HashArray<T>, output: HashArray<T> = this.clone()): HashArray<T>
    {
       if (!(target instanceof HashArray))
       {
          throw new TypeError(`HashArray.intersection error: 'target' must be a HashArray.`);
       }
-
-      const result = new HashArray<T>(this.#keyFields, this.#options);
 
       for (const item of this.#list)
       {
@@ -527,13 +534,13 @@ export class HashArray<T extends object>
 
             if (key && this.#map.get(key)?.includes?.(item) && target.#map.get(key)?.includes?.(item))
             {
-               result.add(item);
+               output.add(item);
                break;
             }
          }
       }
 
-      return result;
+      return output;
    }
 
    // ----------------------------------------------------------------------------------------------------------------
@@ -647,9 +654,14 @@ export class HashArray<T extends object>
 /**
  * Options for HashArray.
  */
-export type HashArrayOptions = {
+export type HashArrayOptions<T> = {
    /**
     * When true, any attempt to add items that collide with any items in the HashArray will be ignored.
     */
    ignoreDuplicates?: boolean;
+
+   /**
+    * An external array that is used for the list backing this HashArray allowing any owner direct access to the list.
+    */
+   list?: T[];
 }

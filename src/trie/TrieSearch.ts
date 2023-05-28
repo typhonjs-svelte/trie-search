@@ -1,13 +1,11 @@
 import {
-   isIterable, isObject,
-   klona
-} from '#runtime/util/object';
+   isIterable,
+   isObject,
+   klona }                 from '#runtime/util/object';
 
-import { HashArray } from '../hash/HashArray';
+import { HashArray }       from '../hash/HashArray';
 
-import type {
-   Key,
-   KeyFields }       from '../types';
+import type { KeyFields }  from '../types';
 
 export type TrieCacheEntry<T> = {
    key: string;
@@ -23,7 +21,7 @@ export class TrieSearch<T extends object>
 
    readonly #keyFields: KeyFields;
 
-   #indexField: string[];
+   readonly #indexField: string[];
 
    readonly #options;
 
@@ -178,26 +176,11 @@ export class TrieSearch<T extends object>
     *
     * @returns {T[]} Found matches.
     */
-   search(phrases, options)
-   {
-      return [...this.searchIter(phrases, options)];
-   }
-
-   /**
-    * @param {string | Iterable<string>}  phrases -
-    *
-    * @param {object} [options] - Search Options.
-    *
-    * @param {TrieReducerFn<T>}  [options.reducer] -
-    *
-    * @param {number}            [options.limit] -
-    *
-    * @returns {T[]} Found matches.
-    */
-   searchIter(phrases, { reducer, limit }: { reducer?: TrieReducerFn<T>, limit?: number } = {})
+   search(phrases, { reducer, limit }: { reducer?: TrieReducerFn<T>, limit?: number } = {})
    {
       const haKeyFields = this.#indexField ? this.#indexField : this.#keyFields;
-      let results = void 0;
+
+      let resultsHA: HashArray<T>;
       let accumulator = void 0;
 
       if (reducer && !this.#indexField)
@@ -206,6 +189,8 @@ export class TrieSearch<T extends object>
       }
 
       phrases = Array.isArray(phrases) ? phrases : [phrases];
+
+      const list: T[] = [];
 
       for (let i = 0, l = phrases.length; i < l; i++)
       {
@@ -217,14 +202,14 @@ export class TrieSearch<T extends object>
          }
          else
          {
-            results = results ? results.add(matches) : new HashArray(haKeyFields).add(matches);
+            resultsHA = resultsHA ? resultsHA.add(matches) : new HashArray<T>(haKeyFields, { list }).add(matches);
          }
       }
 
-      return !reducer ? results.valuesFlat() : accumulator;
+      return !reducer ? list : accumulator;
    }
 
-   static UNION_REDUCER(accumulator, phrase, matches, indexField)
+   static UNION_REDUCER<T>(accumulator: T[], phrase: string, matches: T[], indexField: string): T[]
    {
       if (accumulator === void 0) { return matches; }
 
@@ -384,18 +369,24 @@ export class TrieSearch<T extends object>
       const haKeyFields = this.#indexField ? this.#indexField : this.#keyFields;
       const words = this.#options.splitOnGetRegEx ? phrase.split(this.#options.splitOnGetRegEx) : [phrase];
 
-      for (let l = words.length, w = 0; w < l; w++)
+      // Note: HashArray has solid encapsulation; to not make a copy of the resulting backing list one can pass in
+      // a list in the constructor or clone method. In the performance critical block below `resultList` will contain
+      // the final value to return after the loop completes.
+
+      let resultList;
+
+      for (const word of words)
       {
-         if (this.#options.min && words[w].length < this.#options.min) { continue; }
+         if (this.#options.min && word.length < this.#options.min) { continue; }
 
-         const temp = new HashArray(haKeyFields);
+         const temp = new HashArray<T>(haKeyFields, { list: resultList = [] });
 
-         if ((node = this.#findNode(words[w]))) { aggregate(node, temp); }
+         if ((node = this.#findNode(word))) { aggregate(node, temp); }
 
-         ret = ret ? ret.intersection(temp) : temp;
+         ret = ret ? ret.intersection(temp, ret.clone({ options: { list: resultList = [] }})) : temp;
       }
 
-      const v: T[] = ret ? [...ret.valuesFlat()] : [];
+      const v: T[] = ret ? resultList : [];
 
       if (this.#options.cache)
       {
