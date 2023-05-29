@@ -1,4 +1,6 @@
-import { TrieSearch } from '../../src';
+import {
+   TrieSearch,
+   unionReducer } from '../../src';
 
 describe('TrieSearch', () =>
 {
@@ -451,56 +453,56 @@ describe('TrieSearch', () =>
          expect(result[1]).to.equal(item5);
       });
 
-      it(`search(['red', 'robin'], TrieSearch.UNION_REDUCER)`, () =>
+      it(`search(['red', 'robin'], { reducer: unionReducer })`, () =>
       {
-         const result = ts.search(['red', 'robin'], { reducer: TrieSearch.UNION_REDUCER });
+         const result = ts.search(['red', 'robin'], { reducer: unionReducer });
 
          expect(result.length).not.to.equal(0);
          expect(result[0]).to.equal(item1);
       });
 
-      it(`search(['green'], TrieSearch.UNION_REDUCER)`, () =>
+      it(`search(['green'], { reducer: unionReducer })`, () =>
       {
-         const result = ts.search(['green'], { reducer: TrieSearch.UNION_REDUCER });
+         const result = ts.search(['green'], { reducer: unionReducer });
 
          expect(result.length).to.equal(2);
          expect(result[0]).to.equal(item3);
          expect(result[1]).to.equal(item4);
       });
 
-      it(`search('green', TrieSearch.UNION_REDUCER)`, () =>
+      it(`search('green', { reducer: unionReducer })`, () =>
       {
-         const result = ts.search('green', { reducer: TrieSearch.UNION_REDUCER });
+         const result = ts.search('green', { reducer: unionReducer });
 
          expect(result.length).to.equal(2);
          expect(result[0]).to.equal(item3);
          expect(result[1]).to.equal(item4);
       });
 
-      it(`search('blue', TrieSearch.UNION_REDUCER)`, () =>
+      it(`search('blue', { reducer: unionReducer })`, () =>
       {
-         const result = ts.search('blue', { reducer: TrieSearch.UNION_REDUCER });
+         const result = ts.search('blue', { reducer: unionReducer });
 
          expect(result.length).to.equal(0);
       });
 
-      it(`search('am', TrieSearch.UNION_REDUCER)`, () =>
+      it(`search('am', { reducer: unionReducer })`, () =>
       {
-         const result = ts.search('am', { reducer: TrieSearch.UNION_REDUCER });
+         const result = ts.search('am', { reducer: unionReducer });
 
          expect(result.length).to.equal(4);
       });
 
-      it(`search(['owl', 'card', 'cock', 'rob'], TrieSearch.UNION_REDUCER)`, () =>
+      it(`search(['owl', 'card', 'cock', 'rob'], { reducer: unionReducer })`, () =>
       {
-         const result = ts.search(['owl', 'card', 'cock', 'rob'], { reducer: TrieSearch.UNION_REDUCER });
+         const result = ts.search(['owl', 'card', 'cock', 'rob'], { reducer: unionReducer });
 
          expect(result.length).to.equal(1);
       });
 
-      it(`search(['owl', 'card', 'cock', 'rob', 'fubar'], TrieSearch.UNION_REDUCER)`, () =>
+      it(`search(['owl', 'card', 'cock', 'rob', 'fubar'], { reducer: unionReducer })`, () =>
       {
-         const result = ts.search(['owl', 'card', 'cock', 'rob', 'fubar'], { reducer: TrieSearch.UNION_REDUCER });
+         const result = ts.search(['owl', 'card', 'cock', 'rob', 'fubar'], { reducer: unionReducer });
 
          expect(result.length).to.equal(0);
       });

@@ -1,5 +1,6 @@
-import { HashArray } from '../../src';
-import { HAExtra }   from '../../src/hash/extra/HAExtra';
+import {
+   HashArray,
+   HashArrayUtil } from '../../src';
 
 type Item = { key: string };
 type Item2 = { key1: string, key2: string };
@@ -24,22 +25,23 @@ describe('HashArray Extras', () =>
             ha.add(a, b, c, d, e);
 
             it('Should work (average airplane speed).',
-             () => assert.equal(HAExtra.average(ha, 'airplane', ['data', 'speed']), 175 / 3));
+             () => assert.equal(HashArrayUtil.average(ha, 'airplane', ['data', 'speed']), 175 / 3));
 
             it('Should work (average boat speed).',
-             () => assert.equal(HAExtra.average(ha, ['boat'], ['data', 'speed']), 15 / 2));
+             () => assert.equal(HashArrayUtil.average(ha, ['boat'], ['data', 'speed']), 15 / 2));
 
             it('Should work (average airplane and boat speed).',
-             () => assert.equal(HAExtra.average(ha, ['airplane', 'boat'], ['data', 'speed']), 190 / 5));
+             () => assert.equal(HashArrayUtil.average(ha, ['airplane', 'boat'], ['data', 'speed']), 190 / 5));
 
             it('Should work with weighted average === 1.0.',
-             () => assert.equal(HAExtra.average(ha, ['airplane', 'boat'], ['data', 'speed'], ['data', 'weight']),
+             () => assert.equal(HashArrayUtil.average(ha, ['airplane', 'boat'], ['data', 'speed'], ['data', 'weight']),
               28.5));
 
             it('Should work with weighted average !== 1.0.', () =>
             {
                a.data.weight = 1.1;
-               assert.equal(HAExtra.average(ha, ['airplane', 'boat'], ['data', 'speed'], ['data', 'weight']), 64.25);
+               assert.equal(HashArrayUtil.average(ha, ['airplane', 'boat'], ['data', 'speed'], ['data', 'weight']),
+                64.25);
             });
          });
       });
@@ -59,16 +61,16 @@ describe('HashArray Extras', () =>
             ha.add(a, b, c, d, e);
 
             it('Should work (sum airplane speed).',
-             () => assert.equal(HAExtra.sum(ha, 'airplane', ['data', 'speed']), 175));
+             () => assert.equal(HashArrayUtil.sum(ha, 'airplane', ['data', 'speed']), 175));
 
             it('Should work (sum boat speed).',
-             () => assert.equal(HAExtra.sum(ha, ['boat'], ['data', 'speed']), 15));
+             () => assert.equal(HashArrayUtil.sum(ha, ['boat'], ['data', 'speed']), 15));
 
             it('Should work (sum airplane and boat speed).',
-             () => assert.equal(HAExtra.sum(ha, ['airplane', 'boat'], ['data', 'speed']), 190));
+             () => assert.equal(HashArrayUtil.sum(ha, ['airplane', 'boat'], ['data', 'speed']), 190));
 
             it('Should work with weighted sums.',
-             () => assert.equal(HAExtra.sum(ha, 'boat', ['data', 'speed'], ['data', 'weight']),
+             () => assert.equal(HashArrayUtil.sum(ha, 'boat', ['data', 'speed'], ['data', 'weight']),
               (10 * 100000) + (5 * 200000)));
          });
       });
@@ -93,7 +95,7 @@ describe('HashArray Extras', () =>
          ha2.add(item1, item3);
 
          // SHOULD contain keys ['whatever2'] for item2 only.
-         const difference = HAExtra.difference(ha1, ha2);
+         const difference = HashArrayUtil.difference(ha1, ha2);
 
          it('Difference HashArray should contain item2 only', () =>
          {
@@ -126,7 +128,7 @@ describe('HashArray Extras', () =>
 
          it('Should contain 4 sample items', () =>
          {
-            const results = HAExtra.sample(ha, 4);
+            const results = HashArrayUtil.sample(ha, 4);
 
             assert.equal(results.length, 4);
 
@@ -135,7 +137,7 @@ describe('HashArray Extras', () =>
 
          it(`Should contain 2 sample items w/ 'blah' key`, () =>
          {
-            const results = HAExtra.sample(ha, 2, 'blah');
+            const results = HashArrayUtil.sample(ha, 2, 'blah');
 
             assert.equal(results.length, 2);
 

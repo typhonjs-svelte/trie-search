@@ -27,7 +27,7 @@ const trieNew = true;         // This package TrieSearch
 const trieOrig = false;       // Original trie-search package.
 
 // Test types
-const enable1 = false;        // Enable1 tests.
+const enable1 = true;        // Enable1 tests.
 
 const sentences = true;       // Sentence tests.
 const sentenceRepeat = 100;   // Repeat count for sentence tests.
