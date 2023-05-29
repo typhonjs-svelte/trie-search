@@ -1,2 +1,2 @@
-export * from './hash/HashArray';
-export * from './trie/TrieSearch';
+export * from './hash';
+export * from './trie';

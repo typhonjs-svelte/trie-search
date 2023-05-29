@@ -1,6 +1,6 @@
-import { HashArray } from '../HashArray';
+import { HashArray } from './HashArray';
 
-import type { Key }  from '../../types';
+import type { Key }  from '../types';
 
 /**
  * Provides extra examples of how various additional operations can be added on top of HashArray. These operations
@@ -9,7 +9,7 @@ import type { Key }  from '../../types';
  *
  * There are tests for all operations below in `./test/hash/HAExtra.test.ts`.
  */
-export class HAExtra
+export class HashArrayUtil
 {
    // ----------------------------------------------------------------------------------------------------------------
    // Mathematical Operations
@@ -84,7 +84,8 @@ export class HAExtra
    // ----------------------------------------------------------------------------------------------------------------
 
    /**
-    * Returns the difference of this HashArray and a target HashArray.
+    * Returns the difference of this HashArray and a target HashArray. If no output HashArray is provided the source
+    * is cloned.
     *
     * @template T
     *
@@ -92,12 +93,14 @@ export class HAExtra
     *
     * @param {HashArray<T>}   target - Target HashArray.
     *
+    * @param {HashArray<T>}   output - Optional output HashArray.
+    *
     * @returns {HashArray<T>} Returns a new HashArray that contains the difference between source (A) and target (B)
     *          HashArrays. Returns A - B.
     */
-   static difference<T extends object>(source: HashArray<T>, target: HashArray<T>): HashArray<T>
+   static difference<T extends object>(source: HashArray<T>, target: HashArray<T>, output?: HashArray<T>): HashArray<T>
    {
-      const result = source.clone();
+      const result = output ? output : source.clone();
 
       for (const item of source.valuesFlat())
       {
@@ -124,7 +127,7 @@ export class HAExtra
       const image: T[] = key ? source.getAll(key) : [...source.valuesFlat()];
       const result: T[] = [];
 
-      for (const randNum of HAExtra.#getUniqueRandomIntegers(count, 0, image.length - 1))
+      for (const randNum of this.#getUniqueRandomIntegers(count, 0, image.length - 1))
       {
          result.push(image[randNum]);
       }

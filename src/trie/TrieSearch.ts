@@ -1,23 +1,22 @@
+import QuickLRU            from '#runtime/data/struct/cache';
+
 import {
    isIterable,
    isObject,
    klona }                 from '#runtime/util/object';
 
-import { HashArray }       from '../hash/HashArray';
+import { HashArray }       from '../';
 
 import type { KeyFields }  from '../types';
-
-export type TrieCacheEntry<T> = {
-   key: string;
-   value: T[]
-}
 
 /**
  * @template T
  */
 export class TrieSearch<T extends object>
 {
-   readonly #cache: HashArray<TrieCacheEntry<T>>;
+   readonly #cachePhrase: QuickLRU<string, T[]>;
+
+   readonly #cacheWord: QuickLRU<string, object>;
 
    readonly #keyFields: KeyFields;
 
@@ -57,12 +56,17 @@ export class TrieSearch<T extends object>
       this.#root = {};
       this.#size = 0;
 
-      if (this.#options.cache) { this.#cache = new HashArray('key'); }
+      // if (this.#options.cache) { this.#cachePhrase = new HashArray('key'); }
+      if (this.#options.cache)
+      {
+         this.#cachePhrase = new QuickLRU<string, T[]>({ maxSize: this.#options.maxCacheSize });
+         this.#cacheWord = new QuickLRU<string, object>({ maxSize: 512 }); // TODO Make configurable
+      }
    }
 
-   get cache(): HashArray<TrieCacheEntry<T>>
+   get cache(): QuickLRU<string, T[]>
    {
-      return this.#cache;
+      return this.#cachePhrase;
    }
 
    get keyFields(): KeyFields
@@ -127,7 +131,12 @@ export class TrieSearch<T extends object>
          }
       }
 
-      if (this.#options.cache) { this.#cache.clear(); }
+      // TODO: Do we need to clear caches on add?
+      if (this.#options.cache)
+      {
+         this.#cachePhrase.clear();
+         this.#cacheWord.clear();
+      }
 
       if (this.#options.ignoreCase) { key = key.toLowerCase(); }
 
@@ -209,42 +218,6 @@ export class TrieSearch<T extends object>
       return !reducer ? list : accumulator;
    }
 
-   static UNION_REDUCER<T>(accumulator: T[], phrase: string, matches: T[], indexField: string): T[]
-   {
-      if (accumulator === void 0) { return matches; }
-
-      const map = {};
-      const maxLength = Math.max(accumulator.length, matches.length);
-      const results = [];
-
-      let i, id;
-      let l = 0;
-
-      // One loop, O(N) for max length of accumulator or matches.
-      for (i = 0; i < maxLength; i++)
-      {
-         if (i < accumulator.length)
-         {
-            id = accumulator[i][indexField];
-            map[id] = map[id] ? map[id] : 0;
-            map[id]++;
-
-            if (map[id] === 2) { results[l++] = accumulator[i]; }
-         }
-
-         if (i < matches.length)
-         {
-            id = matches[i][indexField];
-            map[id] = map[id] ? map[id] : 0;
-            map[id]++;
-
-            if (map[id] === 2) { results[l++] = matches[i]; }
-         }
-      }
-
-      return results;
-   }
-
    // Internal -------------------------------------------------------------------------------------------------------
 
    static #MAX_CACHE_SIZE = 64;
@@ -276,14 +249,6 @@ export class TrieSearch<T extends object>
 
          for (let v = 0; v < expandedValues.length; v++) { this.map(expandedValues[v], item); }
       }
-   }
-
-   /**
-    * Cleans the cache by a simple FIFO method; first in / first out removing entries until `maxCacheSize` is reached.
-    */
-   #cleanCache()
-   {
-      while (this.#cache.sizeFlat > this.#options.maxCacheSize) { this.#cache.removeFirst(); }
    }
 
    /**
@@ -323,9 +288,16 @@ export class TrieSearch<T extends object>
       return values;
    }
 
+   // DEPTH FIRST RECURSIVE W/ CACHE (ORIGINAL)
    #findNode(key)
    {
-      return f(this.#keyToArr(key), this.#root);
+      if (this.#cacheWord.has(key)) { return this.#cacheWord.get(key); }
+
+      const result = f(this.#keyToArr(key), this.#root);
+
+      this.#cacheWord.set(key, result);
+
+      return result;
 
       function f(keyArr: string[], node)
       {
@@ -362,7 +334,7 @@ export class TrieSearch<T extends object>
 
       let c, node;
 
-      if (this.#options.cache && (c = this.#cache.get(TrieSearch.#getCacheKey(phrase, limit)))) { return c.value; }
+      if (this.#options.cache && (c = this.#cachePhrase.get(TrieSearch.#getCacheKey(phrase, limit)))) { return c; }
 
       let ret = void 0;
 
@@ -386,16 +358,11 @@ export class TrieSearch<T extends object>
          ret = ret ? ret.intersection(temp, ret.clone({ options: { list: resultList = [] }})) : temp;
       }
 
-      const v: T[] = ret ? resultList : [];
+      const results: T[] = ret ? resultList : [];
 
-      if (this.#options.cache)
-      {
-         const cacheKey = TrieSearch.#getCacheKey(phrase, limit);
-         this.#cache.add({ key: cacheKey, value: v });
-         this.#cleanCache();
-      }
+      if (this.#options.cache) { this.#cachePhrase.set(TrieSearch.#getCacheKey(phrase, limit), results); }
 
-      return v;
+      return results
 
       function aggregate(node, ha)
       {
@@ -493,7 +460,7 @@ export type TrieSearchOptions = {
    insertFullUnsplitKey?: boolean;
 
    /**
-    * The max cache size before removing entries in a FIFO manner; default: 64.
+    * The max cache size before removing entries in a LRU manner; default: 64.
     */
    maxCacheSize?: number;
 
