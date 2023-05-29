@@ -23,6 +23,9 @@ const jsonSentenceData = jsonSentenceRaw.sentences.map((sentence, i) => ({ k: se
 const loading = false;        // Loading data tests.
 const stress = true;          // Stress testing.
 
+const trieNew = true;         // This package TrieSearch
+const trieOrig = false;       // Original trie-search package.
+
 // Test types
 const enable1 = false;        // Enable1 tests.
 
@@ -37,7 +40,7 @@ describe.skipIf(!loading || !enable1)('Loading Enable1', () =>
 {
    let ts, tsOrig;
 
-   bench('TrieSearch New', () =>
+   bench.skipIf(!trieNew)('TrieSearch New', () =>
    {
       ts.add(jsonEnableData);
    },
@@ -49,7 +52,7 @@ describe.skipIf(!loading || !enable1)('Loading Enable1', () =>
       }
    });
 
-   bench('TrieSearch Original', () =>
+   bench.skipIf(!trieOrig)('TrieSearch Original', () =>
    {
       tsOrig.addAll(jsonEnableData);
    },
@@ -66,7 +69,7 @@ describe.skipIf(!loading || !sentences)('Loading Sentences', () =>
 {
    let ts, tsOrig;
 
-   bench('TrieSearch New', () =>
+   bench.skipIf(!trieNew)('TrieSearch New', () =>
    {
       ts.add(jsonSentenceData);
    },
@@ -78,7 +81,7 @@ describe.skipIf(!loading || !sentences)('Loading Sentences', () =>
       }
    });
 
-   bench('TrieSearch Original', () =>
+   bench.skipIf(!trieOrig)('TrieSearch Original', () =>
    {
       tsOrig.addAll(jsonSentenceData);
    },
@@ -99,7 +102,7 @@ describe.skipIf(!stress || !enable1)('Search Enable1', () =>
 
    let searchCount = 0;
 
-   bench('TrieSearch New', () =>
+   bench.skipIf(!trieNew)('TrieSearch New', () =>
    {
       for (const prefix of jsonEnableFirst3Data) { searchCount += ts.search(prefix).length; }
       // console.log(`!! TrieSearch New - searchCount: ${searchCount}`)
@@ -119,7 +122,7 @@ describe.skipIf(!stress || !enable1)('Search Enable1', () =>
       }
    });
 
-   bench('TrieSearch Original', () =>
+   bench.skipIf(!trieOrig)('TrieSearch Original', () =>
    {
       for (const prefix of jsonEnableFirst3Data) { searchCount += tsOrig.search(prefix).length; }
       // console.log(`!! TrieSearch Original - searchCount: ${searchCount}`)
@@ -146,7 +149,7 @@ describe.skipIf(!stress || !sentences)('Search Sentences', () =>
 
    let searchCount = 0;
 
-   bench('TrieSearch New', () =>
+   bench.skipIf(!trieNew)('TrieSearch New', () =>
    {
       searchCount += searchCoordinated(ts, sentenceRepeat, searchCount);
       searchCount += searchUncoordinated(ts, sentenceRepeat, searchCount);
@@ -168,7 +171,7 @@ describe.skipIf(!stress || !sentences)('Search Sentences', () =>
       }
    });
 
-   bench('TrieSearch Original', () =>
+   bench.skipIf(!trieOrig)('TrieSearch Original', () =>
    {
       searchCount += searchCoordinated(tsOrig, sentenceRepeat, searchCount);
       searchCount += searchUncoordinated(tsOrig, sentenceRepeat, searchCount);
