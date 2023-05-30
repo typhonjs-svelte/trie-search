@@ -108,8 +108,6 @@ describe.skipIf(!stress || !enable1)('Search Enable1', () =>
       // console.log(`!! TrieSearch New - searchCount: ${searchCount}`)
    },
    {
-      // iterations: 50,
-
       setup: () =>
       {
          ts = new TrieSearch('k');
@@ -128,8 +126,6 @@ describe.skipIf(!stress || !enable1)('Search Enable1', () =>
       // console.log(`!! TrieSearch Original - searchCount: ${searchCount}`)
    },
    {
-      // iterations: 50,
-
       setup: () =>
       {
          tsOrig = new TrieSearchOrig('k');
@@ -153,12 +149,11 @@ describe.skipIf(!stress || !sentences)('Search Sentences', () =>
    {
       searchCount += searchCoordinated(ts, sentenceRepeat, searchCount);
       searchCount += searchUncoordinated(ts, sentenceRepeat, searchCount);
+      searchCount += searchRandomized(ts, sentenceRepeat, searchCount);
 
       // console.log(`!! TrieSearch New - searchCount: ${searchCount}`)
    },
    {
-      // iterations: 50,
-
       setup: () =>
       {
          ts = new TrieSearch('k');
@@ -175,12 +170,9 @@ describe.skipIf(!stress || !sentences)('Search Sentences', () =>
    {
       searchCount += searchCoordinated(tsOrig, sentenceRepeat, searchCount);
       searchCount += searchUncoordinated(tsOrig, sentenceRepeat, searchCount);
-
-      // console.log(`!! TrieSearch Original - searchCount: ${searchCount}`)
+      searchCount += searchRandomized(tsOrig, sentenceRepeat, searchCount);
    },
    {
-      // iterations: 50,
-
       setup: () =>
       {
          tsOrig = new TrieSearchOrig('k');
@@ -216,7 +208,7 @@ function searchCoordinated(ts, repeat: number = 100, searchCount: number)
 
          for (const part of phrase)
          {
-            search += `${part} `
+            search += `${part} `;
             searchCount += ts.search(search).length;
          }
       }
@@ -245,7 +237,36 @@ function searchUncoordinated(ts, repeat: number = 100, searchCount: number)
 
          for (const part of phrase)
          {
-            search += `${part} `
+            search += `${part} `;
+            searchCount += ts.search(search).length;
+         }
+      }
+   }
+
+   return searchCount;
+}
+
+/**
+ * Tests a loop of 50 three word phrases adding a word to each phrase separated by a space. The word / phrase data
+ * is random and the words in each phrase do not appear in the sentence data.
+ *
+ * @param {TrieSearch}  ts - TrieSearch instance
+ *
+ * @param {number}      repeat - Number of repeat loops.
+ *
+ * @param {number}      searchCount - Running search result count.
+ */
+function searchRandomized(ts, repeat: number = 100, searchCount: number)
+{
+   for (let i = 0; i < repeat; i++)
+   {
+      for (const phrase of jsonSentenceRaw.phrasesRandomized)
+      {
+         let search = '';
+
+         for (const part of phrase)
+         {
+            search += `${part} `;
             searchCount += ts.search(search).length;
          }
       }
