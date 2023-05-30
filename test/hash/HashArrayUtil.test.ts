@@ -104,6 +104,14 @@ describe('HashArray Extras', () =>
             assert(!difference.collides(item3), 'does contain item3');
             assert(!difference.collides(item4), 'does contain item4');
          });
+
+         it('Difference accepts output HashArray', () =>
+         {
+            const outHA =new HashArray<Item2>(['key1', 'key2']);
+            const difference = HashArrayUtil.difference(ha1, ha2, outHA);
+
+            assert.equal(outHA, difference);
+         });
       });
    });
 
