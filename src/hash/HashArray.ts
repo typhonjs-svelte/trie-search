@@ -33,7 +33,7 @@ enum CloneOps {
  */
 export class HashArray<T extends object>
 {
-   static CloneOps = CloneOps;
+   static readonly CloneOps = CloneOps;
 
    readonly #keyFields: KeyFields;
 
