@@ -10,8 +10,7 @@
   ],
   "sideEffects": false,
   "imports": {
-    "#runtime/data/struct/cache/quick-lru": "@typhonjs-svelte/runtime-base/data/struct/cache/quick-lru",
-    "#runtime/util/object": "@typhonjs-svelte/runtime-base/util/object"
+    "#runtime/*": "@typhonjs-svelte/runtime-base/*"
   },
   "exports": {
     ".": {

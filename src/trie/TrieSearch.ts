@@ -57,6 +57,8 @@ export class TrieSearch<T extends object>
 
       if (typeof options?.indexField === 'string') { this.#indexField = [options.indexField]; }
 
+      TrieSearch.#validateOptions(this.#options);
+
       this.#root = {};
       this.#size = 0;
 
@@ -64,7 +66,7 @@ export class TrieSearch<T extends object>
       if (this.#options.cache)
       {
          this.#cachePhrase = new QuickLRU<string, T[]>({ maxSize: this.#options.maxCacheSize });
-         this.#cacheWord = new QuickLRU<string, object>({ maxSize: 512 }); // TODO Make configurable
+         this.#cacheWord = new QuickLRU<string, object>({ maxSize: this.#options.maxCacheSize });
       }
    }
 
@@ -120,6 +122,12 @@ export class TrieSearch<T extends object>
       this.#root = {};
       this.#size = 0;
 
+      if (this.#options.cache)
+      {
+         this.#cachePhrase.clear();
+         this.#cacheWord.clear();
+      }
+
       return this;
    }
 
@@ -146,16 +154,10 @@ export class TrieSearch<T extends object>
          }
       }
 
-      // TODO: Do we need to clear caches on add?
-      if (this.#options.cache)
-      {
-         this.#cachePhrase.clear();
-         this.#cacheWord.clear();
-      }
-
       if (this.#options.ignoreCase) { key = key.toLowerCase(); }
 
       let node = this.#root;
+
       for (const token of this.#keyTokenizer(key))
       {
          if (!node[token])
@@ -166,8 +168,12 @@ export class TrieSearch<T extends object>
          node = node[token];
       }
 
-      node['value'] = node['value'] ?? [];
-      node['value'].push(value);
+      // Ensure that a token was generated otherwise discard setting value as key is likely less than `min` option.
+      if (node !== this.#root)
+      {
+         node['value'] = node['value'] ?? [];
+         node['value'].push(value);
+      }
 
       return this;
    }
@@ -278,10 +284,10 @@ export class TrieSearch<T extends object>
     *
     * @param {TrieSearchOptions} options - TrieSearch options.
     *
-    * @returns {Generator<string>}  Always returns an array even if no matches.
+    * @returns {IterableIterator<string>}  Always returns an array even if no matches.
     * @yields {string}
     */
-   static *#expandString(value: string, options): Generator<string>
+   static *#expandString(value: string, options): IterableIterator<string>
    {
       yield value;
 
@@ -407,24 +413,56 @@ export class TrieSearch<T extends object>
    /**
     * Splits the given key by a minimum prefix followed by remaining characters as tokens.
     *
+    * Note: An external tokenizer may be set in options to replace the internal / ASCII tokenizer. An external
+    * tokenizer must be a function that takes a string and returns an {@link IterableIterator<string>}.
+    *
     * @param {string}   key - A key to split.
     *
-    * @returns {Generator<string>} A generator that yields each character or prefix from the key as a token.
+    * @returns {IterableIterator<string>} A generator that yields each character or prefix from the key as a token.
     * @yields {string}
     */
-   *#keyTokenizer(key): Generator<string>
+   *#keyTokenizer(key): IterableIterator<string>
    {
-      if (this.#options.min && this.#options.min > 1)
+      if (this.#options.tokenizer)
       {
-         if (key.length < this.#options.min) { return; }
+         const extTokenizer = this.#options.tokenizer(key);
 
-         yield key.substring(0, this.#options.min);
+         // Only process this block if there is a min size > 1.
+         if (this.#options.min && this.#options.min > 1)
+         {
+            let buffer = '';
+            let i = 0;
 
-         for (let i = this.#options.min; i < key.length; i++) { yield key[i]; }
+            for (; i < this.#options.min; i++)
+            {
+               const next = extTokenizer.next();
+
+               // Tokens ended before `min` length.
+               if (next.done) { return; }
+
+               buffer += next.value;
+            }
+
+            yield buffer;
+         }
+
+         // Finish yielding rest of tokens.
+         for (const token of extTokenizer) { yield token; }
       }
       else
       {
-         for (let i = 0; i < key.length; i++) { yield key[i]; }
+         if (this.#options.min && this.#options.min > 1)
+         {
+            if (key.length < this.#options.min) { return; }
+
+            yield key.substring(0, this.#options.min);
+
+            for (let i = this.#options.min; i < key.length; i++) { yield key[i]; }
+         }
+         else
+         {
+            for (let i = 0; i < key.length; i++) { yield key[i]; }
+         }
       }
    }
 
@@ -442,5 +480,18 @@ export class TrieSearch<T extends object>
    static #replaceStringAt(target: string, index: number, replacement: string)
    {
       return target.substring(0, index) + replacement + target.substring(index + replacement.length);
+   }
+
+   /**
+    * Validate options
+    *
+    * @param {TrieSearchOptions} options - Options to validate.
+    */
+   static #validateOptions(options)
+   {
+      if (options.tokenizer !== void 0 && typeof options.tokenizer !== 'function')
+      {
+         throw new TypeError(`TrieSearch error: 'options.tokenizer' is not a function.`);
+      }
    }
 }

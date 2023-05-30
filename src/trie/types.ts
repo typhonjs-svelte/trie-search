@@ -47,6 +47,11 @@ export type TrieSearchOptions = {
     * How phrases are split on retrieval / get: default: `/\s/g`.
     */
    splitOnGetRegEx?: RegExp | false;
+
+   /**
+    * Provide a custom tokenizer that is used to split keys.
+    */
+   tokenizer?: (str) => IterableIterator<string>
 }
 
 export type TrieReducerFn<T extends object> =
