@@ -189,11 +189,10 @@ export class TrieSearch<T extends object>
     *
     * @returns {T[]} Found matches.
     */
-   search(phrases, { reducer, limit }: { reducer?: TrieReducerFn<T>, limit?: number } = {})
+   search(phrases: string | Iterable<string>, { reducer, limit }: { reducer?: TrieReducerFn<T>, limit?: number } = {})
    {
       const haKeyFields = this.#indexField ? this.#indexField : this.#keyFields;
 
-      let resultsHA: HashArray<T>;
       let accumulator = void 0;
 
       if (reducer && !this.#indexField)
@@ -201,21 +200,37 @@ export class TrieSearch<T extends object>
          throw new Error(`TrieSearch.search error: To use a reducer you must specify the 'indexField' option.`);
       }
 
-      phrases = Array.isArray(phrases) ? phrases : [phrases];
-
       const list: T[] = [];
 
-      for (let i = 0, l = phrases.length; i < l; i++)
+      if (isIterable(phrases))
       {
-         const matches = this.#getImpl(phrases[i], limit);
+         let resultsHA: HashArray<T>;
+
+         for (const phrase of phrases)
+         {
+            const matches = this.#getImpl(phrase, limit);
+
+            if (reducer)
+            {
+               accumulator = reducer(accumulator, phrase, matches, this.#indexField[0]);
+            }
+            else
+            {
+               resultsHA = resultsHA ? resultsHA.add(matches) : new HashArray<T>(haKeyFields, { list }).add(matches);
+            }
+         }
+      }
+      else
+      {
+         const matches = this.#getImpl(phrases, limit);
 
          if (reducer)
          {
-            accumulator = reducer(accumulator, phrases[i], matches, this.#indexField[0]);
+            accumulator = reducer(accumulator, phrases, matches, this.#indexField[0]);
          }
          else
          {
-            resultsHA = resultsHA ? resultsHA.add(matches) : new HashArray<T>(haKeyFields, { list }).add(matches);
+            new HashArray<T>(haKeyFields, { list }).add(matches);
          }
       }
 
