@@ -1,7 +1,6 @@
 import QuickLRU            from '#runtime/data/struct/cache/quick-lru';
 
 import {
-   deepFreeze,
    isIterable,
    isObject,
    klona }                 from '#runtime/util/object';
@@ -9,6 +8,10 @@ import {
 import { HashArray }       from '../hash';
 
 import type { KeyFields }  from '../types';
+
+import type {
+   TrieReducerFn,
+   TrieSearchOptions }     from "./types";
 
 /**
  * @template T
@@ -23,11 +26,11 @@ export class TrieSearch<T extends object>
 
    readonly #indexField: string[];
 
-   readonly #options;
+   readonly #options: TrieSearchOptions;
 
    #root;
 
-   #size;
+   #size: number;
 
    /**
     * @param {Array} [keyFields] -
@@ -80,6 +83,9 @@ export class TrieSearch<T extends object>
       return this.#root;
    }
 
+   /**
+    * @returns {number} Number of nodes in the trie data structure.
+    */
    get size(): number
    {
       return this.#size;
@@ -111,20 +117,8 @@ export class TrieSearch<T extends object>
 
    clear(): this
    {
-      if (Object.isFrozen(this.#root)) { throw new TypeError('Cannot clear #root, object is not extensible'); }
-
       this.#root = {};
       this.#size = 0;
-
-      return this;
-   }
-
-   /**
-    * Deep freezes the root trie data structure preventing any further addition / removal of entries.
-    */
-   freeze(): this
-   {
-      deepFreeze(this.#root);
 
       return this;
    }
@@ -265,7 +259,7 @@ export class TrieSearch<T extends object>
 
          val = val.toString();
 
-         for (const expandedValue of this.#expandString(val)) { this.map(expandedValue, item); }
+         for (const expandedValue of TrieSearch.#expandString(val, this.#options)) { this.map(expandedValue, item); }
       }
    }
 
@@ -282,18 +276,20 @@ export class TrieSearch<T extends object>
     *
     * @param {string}   value The string to find alternates for.
     *
+    * @param {TrieSearchOptions} options - TrieSearch options.
+    *
     * @returns {Generator<string>}  Always returns an array even if no matches.
     * @yields {string}
     */
-   *#expandString(value: string): Generator<string>
+   static *#expandString(value: string, options): Generator<string>
    {
       yield value;
 
-      if (this.#options.expandRegexes && this.#options.expandRegexes.length)
+      if (options.expandRegexes && options.expandRegexes.length)
       {
-         for (let i = 0; i < this.#options.expandRegexes.length; i++)
+         for (let i = 0; i < options.expandRegexes.length; i++)
          {
-            const er = this.#options.expandRegexes[i];
+            const er = options.expandRegexes[i];
             let match;
 
             while ((match = er.regex.exec(value)) !== null)
@@ -448,57 +444,3 @@ export class TrieSearch<T extends object>
       return target.substring(0, index) + replacement + target.substring(index + replacement.length);
    }
 }
-
-export type TrieSearchOptions = {
-   /**
-    * Is caching enabled; default: true.
-    */
-   cache?: boolean;
-
-   /**
-    * By default, this is set to an array of international vowels expansions, allowing searches for vowels like 'a' to
-    * return matches on 'å' or 'ä' etc. Set this to an empty array / `[]` if you want to disable it. See the top of
-    * `src/trie/TrieSearch.js` file for examples.
-    */
-   expandRegexes?: [{ regex: RegExp, alternate: string }];
-
-   /**
-    * Ignores case in lookups; default: true.
-    */
-   ignoreCase?: boolean;
-
-   /**
-    * If specified, determines which rows are unique when using search(); default: undefined.
-    */
-   indexField?: string;
-
-   /**
-    * Default: false
-    */
-   insertFullUnsplitKey?: boolean;
-
-   /**
-    * The max cache size before removing entries in a LRU manner; default: 64.
-    */
-   maxCacheSize?: number;
-
-   /**
-    * The size of the prefix for keys; Minimum length of a key to store and search. By default, this is 1, but you
-    * might improve performance by using 2 or 3.
-    */
-   min?: number;
-
-   /**
-    * How phrases are split on search: default: `/\s/g`. By default, this is any whitespace. Set to `false` if you have
-    * whitespace in your keys! Set it something else to split along other boundaries.
-    */
-   splitOnRegEx?: RegExp | false;
-
-   /**
-    * How phrases are split on retrieval / get: default: `/\s/g`.
-    */
-   splitOnGetRegEx?: RegExp | false;
-}
-
-export type TrieReducerFn<T extends object> =
- (accumulator: T[], phrase: string, matches: T[], indexField: string) => T[];

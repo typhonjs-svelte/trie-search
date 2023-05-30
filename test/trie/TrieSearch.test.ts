@@ -415,21 +415,6 @@ describe('TrieSearch', () =>
       });
    });
 
-   describe('freeze() should prevent additional add / removal of data', () =>
-   {
-      const ts = new TrieSearch('key').freeze();
-
-      it(`freeze() throws for add after frozen`, () =>
-      {
-         expect(() => ts.add({ key: 'boo'})).to.throw(TypeError);
-      });
-
-      it(`freeze() throws for clear after frozen`, () =>
-      {
-         expect(() => ts.clear()).to.throw(TypeError);
-      });
-   });
-
    describe('search(...) should work with a custom reducer and accumulator', () =>
    {
       const ts = new TrieSearch('key', { min: 2, indexField: 'key' });
