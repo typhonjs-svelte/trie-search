@@ -250,9 +250,7 @@ export class TrieSearch<T extends object>
 
          val = val.toString();
 
-         const expandedValues = this.#expandString(val);
-
-         for (let v = 0; v < expandedValues.length; v++) { this.map(expandedValues[v], item); }
+         for (const expandedValue of this.#expandString(val)) { this.map(expandedValue, item); }
       }
    }
 
@@ -269,11 +267,12 @@ export class TrieSearch<T extends object>
     *
     * @param {string}   value The string to find alternates for.
     *
-    * @returns {string[]}  Always returns an array even if no matches.
+    * @returns {Generator<string>}  Always returns an array even if no matches.
+    * @yields {string}
     */
-   #expandString(value: string): string[]
+   *#expandString(value: string): Generator<string>
    {
-      const values = [value];
+      yield value;
 
       if (this.#options.expandRegexes && this.#options.expandRegexes.length)
       {
@@ -285,12 +284,10 @@ export class TrieSearch<T extends object>
             while ((match = er.regex.exec(value)) !== null)
             {
                const alternateValue = TrieSearch.#replaceStringAt(value, match.index, er.alternate);
-               values.push(alternateValue);
+               yield alternateValue;
             }
          }
       }
-
-      return values;
    }
 
    /**
