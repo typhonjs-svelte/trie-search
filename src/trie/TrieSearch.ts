@@ -161,28 +161,19 @@ export class TrieSearch<T extends object>
 
       if (this.#options.ignoreCase) { key = key.toLowerCase(); }
 
-      const keyArr = this.#keyToArr(key);
-      const self = this;
-
-      insert(keyArr, value, this.#root);
-
-      function insert(keyArr, value, node)
+      let node = this.#root;
+      for (const token of this.#keyTokenizer(key))
       {
-         if (keyArr.length === 0)
+         if (!node[token])
          {
-            node['value'] = node['value'] ?? [];
-            node['value'].push(value);
-            return;
+            this.#size++;
+            node[token] = {};
          }
-
-         const k = keyArr.shift();
-
-         if (!node[k]) { self.#size++; }
-
-         node[k] = node[k] ?? {};
-
-         insert(keyArr, value, node[k]);
+         node = node[token];
       }
+
+      node['value'] = node['value'] ?? [];
+      node['value'].push(value);
 
       return this;
    }
@@ -246,6 +237,7 @@ export class TrieSearch<T extends object>
       { regex: /[æ]/ig, alternate: 'ae' }
    ];
 
+
    #addOne(item: T)
    {
       if (!isObject(item)) { throw new TypeError(`TrieSearch.add error: The add method only accepts objects.`); }
@@ -292,7 +284,7 @@ export class TrieSearch<T extends object>
 
             while ((match = er.regex.exec(value)) !== null)
             {
-               const alternateValue = TrieSearch.#replaceCharAt(value, match.index, er.alternate);
+               const alternateValue = TrieSearch.#replaceStringAt(value, match.index, er.alternate);
                values.push(alternateValue);
             }
          }
@@ -301,25 +293,26 @@ export class TrieSearch<T extends object>
       return values;
    }
 
-   // DEPTH FIRST RECURSIVE W/ CACHE (ORIGINAL)
+   /**
+    * Finds the node in the trie data by a depth first algorithm by the given key. Uses a larger LRU cache. The key is
+    * tokenized into fragments.
+    *
+    * @param {string}   key - A key to find in trie data.
+    */
    #findNode(key)
    {
       if (this.#cacheWord.has(key)) { return this.#cacheWord.get(key); }
 
-      const result = f(this.#keyToArr(key), this.#root);
-
-      this.#cacheWord.set(key, result);
-
-      return result;
-
-      function f(keyArr: string[], node)
+      let node = this.#root;
+      for (const token of this.#keyTokenizer(key))
       {
          if (!node) { return void 0; }
-         if (keyArr.length === 0) { return node; }
-
-         const k = keyArr.shift();
-         return f(keyArr, node[k]);
+         node = node[token];
       }
+
+      this.#cacheWord.set(key, node);
+
+      return node;
    }
 
    /**
@@ -404,32 +397,32 @@ export class TrieSearch<T extends object>
    }
 
    /**
-    * Splits the given key by a minimum prefix followed by remaining characters.
+    * Splits the given key by a minimum prefix followed by remaining characters as tokens.
     *
     * @param {string}   key - A key to split.
     *
-    * @returns {string[]} Array of split key with prefix / first entry set to `min` option.
+    * @returns {Generator<string>} A generator that yields each character or prefix from the key as a token.
+    * @yields {string}
     */
-   #keyToArr(key): string[]
+   *#keyTokenizer(key): Generator<string>
    {
-      let keyArr;
-
       if (this.#options.min && this.#options.min > 1)
       {
-         if (key.length < this.#options.min) { return []; }
+         if (key.length < this.#options.min) { return; }
 
-         keyArr = [key.substring(0, this.#options.min)];
-         keyArr = keyArr.concat(key.substring(this.#options.min).split(''));
+         yield key.substring(0, this.#options.min);
+
+         for (let i = this.#options.min; i < key.length; i++) { yield key[i]; }
       }
       else
       {
-         keyArr = key.split('');
+         for (let i = 0; i < key.length; i++) { yield key[i]; }
       }
-
-      return keyArr;
    }
 
    /**
+    * Replaces a portion of a string with a new value.
+    *
     * @param {string}   target - The target string.
     *
     * @param {number}   index - Index for replacement.
@@ -438,7 +431,7 @@ export class TrieSearch<T extends object>
     *
     * @returns {string} The target string w/ replacement.
     */
-   static #replaceCharAt(target: string, index: number, replacement: string)
+   static #replaceStringAt(target: string, index: number, replacement: string)
    {
       return target.substring(0, index) + replacement + target.substring(index + replacement.length);
    }
