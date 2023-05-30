@@ -19,7 +19,22 @@ describe('TrieSearch', () =>
       });
    });
 
-   describe('map(key, value) and search(str) should work', () =>
+   describe('map(key, value) as string and search(str) should work', () =>
+   {
+      it('should be able to call map() and search()', () =>
+      {
+         const ts : TrieSearch<any> = new TrieSearch<any>();
+
+         ts.map('hello', 'world');
+
+         expect(ts.search('hel').length).to.equal(1);
+         expect(ts.search('hell').length).to.equal(1);
+         expect(ts.search('hello').length).to.equal(1);
+         expect(ts.search('hel')[0]).to.equal('world');
+      });
+   });
+
+   describe('map(key, value) as item and search(str) should work', () =>
    {
       it('should be able to call map() and search()', () =>
       {

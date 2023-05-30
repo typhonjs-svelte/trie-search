@@ -123,7 +123,7 @@ export class TrieSearch<T extends object>
       return this;
    }
 
-   map(key: string, value: T): this
+   map(key: string, value: T | string): this
    {
       if (this.#options.splitOnRegEx && this.#options.splitOnRegEx.test(key))
       {
