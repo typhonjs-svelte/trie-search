@@ -23,7 +23,7 @@ export default () =>
       {   // This bundle is for bundled types.
          input: 'src/index.ts',
          output: [{
-            file: `./types/index.d.mts`,
+            file: `./dist/index.d.ts`,
             format: 'es',
             sourcemap: false
          }],
