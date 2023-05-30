@@ -1,11 +1,12 @@
-import QuickLRU            from '#runtime/data/struct/cache';
+import QuickLRU            from '#runtime/data/struct/cache/quick-lru';
 
 import {
+   deepFreeze,
    isIterable,
    isObject,
    klona }                 from '#runtime/util/object';
 
-import { HashArray }       from '../';
+import { HashArray }       from '../hash';
 
 import type { KeyFields }  from '../types';
 
@@ -64,7 +65,7 @@ export class TrieSearch<T extends object>
       }
    }
 
-   get cache(): QuickLRU<string, T[]>
+   get cache(): Map<string, T[]>
    {
       return this.#cachePhrase;
    }
@@ -104,6 +105,26 @@ export class TrieSearch<T extends object>
             this.#addOne(itemOrList);
          }
       }
+
+      return this;
+   }
+
+   clear(): this
+   {
+      if (Object.isFrozen(this.#root)) { throw new TypeError('Cannot clear #root, object is not extensible'); }
+
+      this.#root = {};
+      this.#size = 0;
+
+      return this;
+   }
+
+   /**
+    * Deep freezes the root trie data structure preventing any further addition / removal of entries.
+    */
+   freeze(): this
+   {
+      deepFreeze(this.#root);
 
       return this;
    }
@@ -162,14 +183,6 @@ export class TrieSearch<T extends object>
 
          insert(keyArr, value, node[k]);
       }
-
-      return this;
-   }
-
-   clear(): this
-   {
-      this.#root = {};
-      this.#size = 0;
 
       return this;
    }
