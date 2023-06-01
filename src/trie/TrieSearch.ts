@@ -187,9 +187,12 @@ export class TrieSearch<T extends object>
     *
     * @param {number}            [options.limit] -
     *
+    * @param {T[]}               [options.list=[]] - An external array to us for storing search results.
+    *
     * @returns {T[]} Found matches.
     */
-   search(phrases: string | Iterable<string>, { reducer, limit }: { reducer?: TrieReducerFn<T>, limit?: number } = {})
+   search(phrases: string | Iterable<string>, { reducer, limit, list = [] }:
+    { reducer?: TrieReducerFn<T>, limit?: number, list?: T[] } = {})
    {
       const haKeyFields = this.#indexField ? this.#indexField : this.#keyFields;
 
@@ -199,8 +202,6 @@ export class TrieSearch<T extends object>
       {
          throw new Error(`TrieSearch.search error: To use a reducer you must specify the 'indexField' option.`);
       }
-
-      const list: T[] = [];
 
       if (isIterable(phrases))
       {
