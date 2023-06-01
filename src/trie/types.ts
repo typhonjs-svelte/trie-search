@@ -51,8 +51,11 @@ export type TrieSearchOptions = {
    /**
     * Provide a custom tokenizer that is used to split keys.
     */
-   tokenizer?: (str) => IterableIterator<string>
+   tokenizer?: (str: string) => IterableIterator<string>
 }
 
+/**
+ * Defines a reducer function used to accumulate and reduce data found in searching.
+ */
 export type TrieReducerFn<T extends object> =
  (accumulator: T[], phrase: string, matches: T[], indexField: string) => T[];

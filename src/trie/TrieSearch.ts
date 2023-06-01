@@ -33,7 +33,7 @@ export class TrieSearch<T extends object>
    #size: number;
 
    /**
-    * @param {Array} [keyFields] -
+    * @param {string | KeyFields} [keyFields] -
     *
     * @param {TrieSearchOptions} [options] - Options.
     */
