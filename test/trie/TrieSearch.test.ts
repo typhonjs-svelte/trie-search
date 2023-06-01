@@ -1,4 +1,4 @@
-import { graphemeIterator }   from "#runtime/data/format/unicode";
+import { graphemeIterator }   from '#runtime/data/format/unicode';
 
 import {
    TrieSearch,

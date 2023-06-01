@@ -1,7 +1,9 @@
-import fs               from 'node:fs';
-import { bench }        from 'vitest';
+import fs                     from 'node:fs';
+import { bench }              from 'vitest';
 
-import { TrieSearch }   from '../../src';
+import { graphemeIterator }   from '#runtime/data/format/unicode';
+
+import { TrieSearch }         from '../../src';
 
 import { default as TrieSearchOrig } from 'trie-search';
 
@@ -24,6 +26,7 @@ const loading = false;        // Loading data tests.
 const stress = true;          // Stress testing.
 
 const trieNew = true;         // This package TrieSearch
+const trieNewUnicode = true;  // This package TrieSearch (Unicode tokenizer)
 const trieOrig = false;       // Original trie-search package.
 
 // Test types
@@ -120,6 +123,24 @@ describe.skipIf(!stress || !enable1)('Search Enable1', () =>
       }
    });
 
+   bench.skipIf(!trieNewUnicode)('TrieSearch New (Unicode)', () =>
+   {
+      for (const prefix of jsonEnableFirst3Data) { searchCount += ts.search(prefix).length; }
+      // console.log(`!! TrieSearch New - searchCount: ${searchCount}`)
+   },
+   {
+      setup: () =>
+      {
+         ts = new TrieSearch('k', { tokenizer: graphemeIterator });
+         searchCount = 0;
+
+         global.gc();
+         // printMemory();
+         ts.add(jsonEnableData);
+         // printMemory();
+      }
+   });
+
    bench.skipIf(!trieOrig)('TrieSearch Original', () =>
    {
       for (const prefix of jsonEnableFirst3Data) { searchCount += tsOrig.search(prefix).length; }
@@ -157,6 +178,27 @@ describe.skipIf(!stress || !sentences)('Search Sentences', () =>
       setup: () =>
       {
          ts = new TrieSearch('k');
+         searchCount = 0;
+
+         global.gc();
+         // printMemory();
+         ts.add(jsonSentenceData);
+         // printMemory();
+      }
+   });
+
+   bench.skipIf(!trieNewUnicode)('TrieSearch New (Unicode)', () =>
+   {
+      searchCount += searchCoordinated(ts, sentenceRepeat, searchCount);
+      searchCount += searchUncoordinated(ts, sentenceRepeat, searchCount);
+      searchCount += searchRandomized(ts, sentenceRepeat, searchCount);
+
+      // console.log(`!! TrieSearch New - searchCount: ${searchCount}`)
+   },
+   {
+      setup: () =>
+      {
+         ts = new TrieSearch('k', { tokenizer: graphemeIterator });
          searchCount = 0;
 
          global.gc();
