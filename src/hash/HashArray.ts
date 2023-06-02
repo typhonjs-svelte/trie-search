@@ -114,7 +114,7 @@ export class HashArray<T extends object>
    // ----------------------------------------------------------------------------------------------------------------
 
    /**
-    * Add items or list of items to the HashArray.
+    * Add items or list of items to the HashArray instance.
     *
     * @param {...(T | Iterable<T>)}  items - Items to add.
     *

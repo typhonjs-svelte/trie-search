@@ -117,6 +117,9 @@ export class TrieSearch<T extends object>
       }
    }
 
+   /**
+    * @returns {KeyFields} A clone of the current key fields.
+    */
    get keyFields(): KeyFields
    {
       return klona(this.#keyFields);
@@ -141,6 +144,8 @@ export class TrieSearch<T extends object>
    }
 
    /**
+    * Add items or list of items to the TrieSearch instance.
+    *
     * @param {...(T | Iterable<T>)}  items - Items to add.
     */
    add(...items: (T | Iterable<T>)[]): this
@@ -173,6 +178,11 @@ export class TrieSearch<T extends object>
       return this;
    }
 
+   /**
+    * Clears all items.
+    *
+    * @returns {TrieSearch<T>} This instance.
+    */
    clear(): this
    {
       if (this.#isDestroyed) { throw new Error(`TrieSearch error: This instance has been destroyed.`); }
@@ -214,6 +224,13 @@ export class TrieSearch<T extends object>
       this.#subscribers.length = 0;
    }
 
+   /**
+    * Directly maps an item to the given key.
+    *
+    * @param {string}   key - The key to store the item.
+    *
+    * @param {T}        value - The item to store.
+    */
    map(key: string, value: T): this
    {
       if (this.#isDestroyed) { throw new Error(`TrieSearch error: This instance has been destroyed.`); }
@@ -264,6 +281,10 @@ export class TrieSearch<T extends object>
    }
 
    /**
+    * Performs a search of the trie data structure with the given phrases. By default, each phrase is split by
+    * {@link TrieSearchOptions.splitOnGetRegEx} and matches found for each word resulting in a `OR` lookup. You may
+    * provide a `reducer` function to change the behavior
+    *
     * @param {string | Iterable<string>}  phrases - The phrases to parse and search in the trie data structure.
     *
     * @param {object} [options] - Search Options.
@@ -357,7 +378,7 @@ export class TrieSearch<T extends object>
 
    static #MAX_CACHE_SIZE = 64;
 
-   static #REGEX_IS_WHITESPACE = /^[\s]*$/;
+   static #REGEX_IS_WHITESPACE = /^\s*$/;
 
    static #DEFAULT_INTERNATIONALIZE_EXPAND_REGEXES = [
       { regex: /[åäàáâãæ]/ig, alternate: 'a' },
@@ -365,7 +386,7 @@ export class TrieSearch<T extends object>
       { regex: /[ìíîï]/ig, alternate: 'i' },
       { regex: /[òóôõö]/ig, alternate: 'o' },
       { regex: /[ùúûü]/ig, alternate: 'u' },
-      { regex: /[æ]/ig, alternate: 'ae' }
+      { regex: /æ/ig, alternate: 'ae' }
    ];
 
    #addOne(item: T)
