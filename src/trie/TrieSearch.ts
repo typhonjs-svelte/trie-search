@@ -26,11 +26,22 @@ export class TrieSearch<T extends object>
 
    readonly #indexField: string[];
 
+   /**
+    * Stores whether this instance has been destroyed.
+    */
+   #isDestroyed: boolean = false;
+
    readonly #options: TrieSearchOptions;
 
+   #size: number;
+
+   /**
+    * Stores the trie data structure.
+    */
    #root;
 
-   #size: number;
+   readonly #subscribers: ((trieSearch: TrieSearch<T> | undefined) => unknown)[] = [];
+
 
    /**
     * @param {string | KeyFields} [keyFields] -
@@ -72,6 +83,8 @@ export class TrieSearch<T extends object>
 
    get cache(): Map<string, T[]>
    {
+      if (this.#isDestroyed) { throw new Error(`TrieSearch error: This instance has been destroyed.`); }
+
       return this.#cachePhrase;
    }
 
@@ -82,6 +95,8 @@ export class TrieSearch<T extends object>
 
    get root()
    {
+      if (this.#isDestroyed) { throw new Error(`TrieSearch error: This instance has been destroyed.`); }
+
       return this.#root;
    }
 
@@ -100,7 +115,10 @@ export class TrieSearch<T extends object>
    {
       if (items.length === 0) { return; }
 
-      if (this.#options.cache) { this.cache.clear(); }
+      if (this.#isDestroyed) { throw new Error(`TrieSearch error: This instance has been destroyed.`); }
+
+      // Only need to clear the phrase cache.
+      if (this.#cachePhrase?.size ) { this.#cachePhrase.clear(); }
 
       for (const itemOrList of items)
       {
@@ -114,11 +132,19 @@ export class TrieSearch<T extends object>
          }
       }
 
+      // Notify subscribers; IE TrieSearchQuery instances.
+      if (this.#subscribers.length)
+      {
+         for (let i = 0; i < this.#subscribers.length; i++) { this.#subscribers[i](this); }
+      }
+
       return this;
    }
 
    clear(): this
    {
+      if (this.#isDestroyed) { throw new Error(`TrieSearch error: This instance has been destroyed.`); }
+
       this.#root = {};
       this.#size = 0;
 
@@ -128,11 +154,44 @@ export class TrieSearch<T extends object>
          this.#cacheWord.clear();
       }
 
+      // Notify subscribers; IE TrieSearchQuery instances.
+      if (this.#subscribers.length)
+      {
+         for (let i = 0; i < this.#subscribers.length; i++) { this.#subscribers[i](this); }
+      }
+
       return this;
+   }
+
+   /**
+    * Destroys this TrieSearch instance. Removing all data and preventing new data from being added. Any subscribers
+    * are notified with an undefined argument in the callback signaling that the associated instance is destroyed.
+    */
+   destroy()
+   {
+      this.#isDestroyed = true;
+      this.#root = {};
+      this.#size = 0;
+
+      if (this.#options.cache)
+      {
+         this.#cachePhrase.clear();
+         this.#cacheWord.clear();
+      }
+
+      // Notify subscribers; IE TrieSearchQuery instances.
+      if (this.#subscribers.length)
+      {
+         for (let i = 0; i < this.#subscribers.length; i++) { this.#subscribers[i](void 0); }
+      }
+
+      this.#subscribers.length = 0;
    }
 
    map(key: string, value: T | string): this
    {
+      if (this.#isDestroyed) { throw new Error(`TrieSearch error: This instance has been destroyed.`); }
+
       if (this.#options.splitOnRegEx && this.#options.splitOnRegEx.test(key))
       {
          const phrases = key.split(this.#options.splitOnRegEx);
@@ -179,21 +238,23 @@ export class TrieSearch<T extends object>
    }
 
    /**
-    * @param {string | Iterable<string>}  phrases -
+    * @param {string | Iterable<string>}  phrases - The phrases to parse and search in the trie data structure.
     *
     * @param {object} [options] - Search Options.
     *
-    * @param {TrieReducerFn<T>}  [options.reducer] -
+    * @param {TrieReducerFn<T>}  [options.reducer] - A trie reducer function to apply to this search.
     *
-    * @param {number}            [options.limit] -
+    * @param {number}            [options.limit] - The limit for search results returned.
     *
-    * @param {T[]}               [options.list=[]] - An external array to us for storing search results.
+    * @param {T[]}               [options.list=[]] - An external array to use for storing search results.
     *
     * @returns {T[]} Found matches.
     */
    search(phrases: string | Iterable<string>, { reducer, limit, list = [] }:
     { reducer?: TrieReducerFn<T>, limit?: number, list?: T[] } = {})
    {
+      if (phrases === void 0) { return list; }
+
       const haKeyFields = this.#indexField ? this.#indexField : this.#keyFields;
 
       let accumulator = void 0;
@@ -238,6 +299,34 @@ export class TrieSearch<T extends object>
       return !reducer ? list : accumulator;
    }
 
+   // Readable store implementation ----------------------------------------------------------------------------------
+
+   /**
+    * Subscribe for change notification on add / clear / destroy.
+    *
+    * Note: There is no data defined regarding what changed only that one of three actions occurred. This TrieSearch
+    * instance is sent as the only argument. When it is undefined this signals that the TrieSearch instance has been
+    * destroyed.
+    *
+    * @param {(trieSearch: TrieSearch<T> | undefined) => unknown} handler - Callback function that is invoked on
+    * changes (add / clear / destroy).
+    *
+    * @returns {() => void} Unsubscribe function.
+    */
+   subscribe(handler)
+   {
+      this.#subscribers.push(handler);
+
+      handler(this);
+
+      // Return unsubscribe function.
+      return () =>
+      {
+         const index = this.#subscribers.findIndex((sub) => sub === handler);
+         if (index >= 0) { this.#subscribers.splice(index, 1); }
+      };
+   }
+
    // Internal -------------------------------------------------------------------------------------------------------
 
    static #MAX_CACHE_SIZE = 64;
@@ -252,7 +341,6 @@ export class TrieSearch<T extends object>
       { regex: /[ùúûü]/ig, alternate: 'u' },
       { regex: /[æ]/ig, alternate: 'ae' }
    ];
-
 
    #addOne(item: T)
    {
