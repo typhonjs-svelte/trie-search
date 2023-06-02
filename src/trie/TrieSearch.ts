@@ -5,13 +5,13 @@ import {
    isObject,
    klona }                 from '#runtime/util/object';
 
-import { HashArray }       from '../hash';
+import { HashArray }       from '#runtime/data/struct/hash/array';
 
 import type { KeyFields }  from '../types';
 
 import type {
    TrieReducerFn,
-   TrieSearchOptions }     from "./types";
+   TrieSearchOptions }     from './types';
 
 /**
  * @template T
@@ -73,7 +73,6 @@ export class TrieSearch<T extends object>
       this.#root = {};
       this.#size = 0;
 
-      // if (this.#options.cache) { this.#cachePhrase = new HashArray('key'); }
       if (this.#options.cache)
       {
          this.#cachePhrase = new QuickLRU<string, T[]>({ maxSize: this.#options.maxCacheSize });
@@ -118,7 +117,7 @@ export class TrieSearch<T extends object>
       if (this.#isDestroyed) { throw new Error(`TrieSearch error: This instance has been destroyed.`); }
 
       // Only need to clear the phrase cache.
-      if (this.#cachePhrase?.size ) { this.#cachePhrase.clear(); }
+      if (this.#cachePhrase?.size) { this.#cachePhrase.clear(); }
 
       for (const itemOrList of items)
       {
@@ -148,11 +147,8 @@ export class TrieSearch<T extends object>
       this.#root = {};
       this.#size = 0;
 
-      if (this.#options.cache)
-      {
-         this.#cachePhrase.clear();
-         this.#cacheWord.clear();
-      }
+      this.#cachePhrase?.clear();
+      this.#cacheWord?.clear();
 
       // Notify subscribers; IE TrieSearchQuery instances.
       if (this.#subscribers.length)
@@ -173,11 +169,8 @@ export class TrieSearch<T extends object>
       this.#root = {};
       this.#size = 0;
 
-      if (this.#options.cache)
-      {
-         this.#cachePhrase.clear();
-         this.#cacheWord.clear();
-      }
+      this.#cachePhrase?.clear();
+      this.#cacheWord?.clear();
 
       // Notify subscribers; IE TrieSearchQuery instances.
       if (this.#subscribers.length)
@@ -404,7 +397,7 @@ export class TrieSearch<T extends object>
     */
    #findNode(key)
    {
-      if (this.#cacheWord.has(key)) { return this.#cacheWord.get(key); }
+      if (this.#cacheWord?.has(key)) { return this.#cacheWord.get(key); }
 
       let node = this.#root;
       for (const token of this.#keyTokenizer(key))
@@ -413,7 +406,7 @@ export class TrieSearch<T extends object>
          node = node[token];
       }
 
-      this.#cacheWord.set(key, node);
+      this.#cacheWord?.set(key, node);
 
       return node;
    }
@@ -443,7 +436,7 @@ export class TrieSearch<T extends object>
 
       let c, node;
 
-      if (this.#options.cache && (c = this.#cachePhrase.get(TrieSearch.#getCacheKey(phrase, limit)))) { return c; }
+      if (this.#cachePhrase && (c = this.#cachePhrase.get(TrieSearch.#getCacheKey(phrase, limit)))) { return c; }
 
       let ret = void 0;
 
@@ -469,7 +462,7 @@ export class TrieSearch<T extends object>
 
       const results: T[] = ret ? resultList : [];
 
-      if (this.#options.cache) { this.#cachePhrase.set(TrieSearch.#getCacheKey(phrase, limit), results); }
+      this.#cachePhrase?.set(TrieSearch.#getCacheKey(phrase, limit), results);
 
       return results
 
