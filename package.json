@@ -10,13 +10,23 @@
   ],
   "sideEffects": false,
   "imports": {
+    "#runtime/data/struct/hash/array": "./src/hash/index.ts",
+    "#runtime/data/struct/search/trie": "./src/trie/index.ts",
     "#runtime/*": "@typhonjs-svelte/runtime-base/*",
     "#svelte/store": "svelte/store"
   },
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "types": "./dist/trie/index.d.mts",
+      "import": "./dist/trie/index.js"
+    },
+    "./hash": {
+      "types": "./dist/hash/index.d.mts",
+      "import": "./dist/hash/index.js"
+    },
+    "./query": {
+      "types": "./dist/query/index.d.mts",
+      "import": "./dist/query/index.js"
     }
   },
   "devDependencies": {
@@ -33,8 +43,8 @@
     "vitest": "^0.31.1"
   },
   "files": [
-    "/src",
-    "/types"
+    "/dist",
+    "/dist-trl"
   ],
   "browserslist": [">5%", "not IE 11"],
   "scripts": {
