@@ -3,7 +3,7 @@
  * another TrieNode.
  */
 export type TrieNode<T extends object> = {
-   [key: string]: TrieNode<T> | undefined;
+   [K in string]?: TrieNode<T>;
 } & {
    value?: T[];
 };

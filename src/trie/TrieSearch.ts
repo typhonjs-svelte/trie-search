@@ -117,13 +117,6 @@ export class TrieSearch<T extends object>
       }
    }
 
-   get cache(): Map<string, T[]>
-   {
-      if (this.#isDestroyed) { throw new Error(`TrieSearch error: This instance has been destroyed.`); }
-
-      return this.#cachePhrase;
-   }
-
    get keyFields(): KeyFields
    {
       return klona(this.#keyFields);
@@ -611,6 +604,11 @@ export class TrieSearch<T extends object>
     */
    static #validateOptions(options)
    {
+      if (options.maxCacheSize !== void 0 && (!Number.isInteger(options.maxCacheSize) || options.maxCacheSize < 0))
+      {
+         throw new TypeError(`TrieSearch error: 'options.maxCacheSize' must be an integer >= 0.`);
+      }
+
       if (options.tokenizer !== void 0 && typeof options.tokenizer !== 'function')
       {
          throw new TypeError(`TrieSearch error: 'options.tokenizer' is not a function.`);
