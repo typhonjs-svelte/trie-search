@@ -114,7 +114,7 @@ export class TrieSearchQuery<T extends object> extends DynArrayReducer<T>
    }
 
    /**
-    * @returns {Writable<number | undefined>} Any current limit set for search results.
+    * @returns {Writable<number | undefined>} The writable store controlling the search results limit.
     */
    get limit(): Writable<number | undefined> { return this.#storeLimit; }
 
@@ -129,12 +129,12 @@ export class TrieSearchQuery<T extends object> extends DynArrayReducer<T>
    get trieSearch(): TrieSearch<T> { return this.#trieSearch !== void 0 ? this.#trieSearch.deref() : void 0; }
 
    /**
-    * @returns {Writable<string | Iterable<string> | undefined>} The search query writable store.
+    * @returns {Writable<string | Iterable<string> | undefined>} The writable store controlling the search query.
     */
    get query(): Writable<string | Iterable<string> | undefined> { return this.#storeQuery; }
 
    /**
-    * @param {TrieReducerFn<T> | undefined}  trieReducer - A new trie
+    * @param {TrieReducerFn<T> | undefined}  trieReducer - A new trie reducer function.
     */
    set trieReducer(trieReducer: TrieReducerFn<T> | undefined)
    {

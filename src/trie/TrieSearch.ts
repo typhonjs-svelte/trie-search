@@ -7,23 +7,51 @@ import {
 
 import { HashArray }       from '#runtime/data/struct/hash/array';
 
-import type { KeyFields }  from '../types';
+import type { KeyFields }  from '#runtime/data/struct/hash/array';
 
 import type {
+   TrieNode,
    TrieReducerFn,
    TrieSearchOptions }     from './types';
 
 /**
+ * A Trie is a data structure designed for quick reTRIEval of objects by string search. This was designed for use with
+ * a type-ahead search (e.g. like a dropdown) but could be used in a variety of situations.
+ *
+ * This data structure indexes sentences / words to objects for searching by full or partial matches. So you can map
+ * 'hello' to an Object, and then search by 'hel', 'hell', or 'hello' and get the Object or an Array of all objects
+ * that match.
+ *
+ * By default, sentences / words are split along whitespace boundaries. For example, if your inserted mapping is
+ * 'the quick brown fox', this object will be searchable by 'the', 'quick', 'brown', or 'fox' or any of their partials
+ * like 'qui' or 'qu' or 'fo'. Boundaries can be customized using the `splitOnRegEx` option.
+ *
+ * By default, the trie-search is internationalized for a common set of vowels in the ASCII set. So if you insert 'ö',
+ * then searching on 'o' will return that result. You can customize this by providing your own `expandRegexes` object.
+ *
  * @template T
  */
 export class TrieSearch<T extends object>
 {
+   /**
+    * Provides a LRU cache for recent search queries. Caches all items matched per phrase.
+    */
    readonly #cachePhrase: QuickLRU<string, T[]>;
 
+   /**
+    * Caches the object associated with a given word in `#findNode`.
+    */
    readonly #cacheWord: QuickLRU<string, object>;
 
+   /**
+    * A single string or an array of strings / arrays representing what fields on added objects are to be used as keys
+    * for the trie search / HashArray.
+    */
    readonly #keyFields: KeyFields;
 
+   /**
+    * An array holding the {@link TrieSearchOptions.indexField} option.
+    */
    readonly #indexField: string[];
 
    /**
@@ -31,20 +59,29 @@ export class TrieSearch<T extends object>
     */
    #isDestroyed: boolean = false;
 
+   /**
+    * Stores the TrieSearch options.
+    */
    readonly #options: TrieSearchOptions;
 
+   /**
+    * Number of nodes in the trie data structure.
+    */
    #size: number;
 
    /**
     * Stores the trie data structure.
     */
-   #root;
-
-   readonly #subscribers: ((trieSearch: TrieSearch<T> | undefined) => unknown)[] = [];
-
+   #root: TrieNode<T>;
 
    /**
-    * @param {string | KeyFields} [keyFields] -
+    * Stores the subscriber handlers registered through {@link TrieSearch.subscribe}.
+    */
+   readonly #subscribers: ((trieSearch: TrieSearch<T> | undefined) => unknown)[] = [];
+
+   /**
+    * @param {string | KeyFields} [keyFields] - A single string or an array of strings / arrays representing what
+    * fields on added objects are to be used as keys for the trie search / HashArray.
     *
     * @param {TrieSearchOptions} [options] - Options.
     */
@@ -92,7 +129,10 @@ export class TrieSearch<T extends object>
       return klona(this.#keyFields);
    }
 
-   get root()
+   /**
+    * @returns {TrieNode<T>} The root trie node.
+    */
+   get root(): TrieNode<T>
    {
       if (this.#isDestroyed) { throw new Error(`TrieSearch error: This instance has been destroyed.`); }
 
@@ -181,7 +221,7 @@ export class TrieSearch<T extends object>
       this.#subscribers.length = 0;
    }
 
-   map(key: string, value: T | string): this
+   map(key: string, value: T): this
    {
       if (this.#isDestroyed) { throw new Error(`TrieSearch error: This instance has been destroyed.`); }
 
@@ -464,7 +504,7 @@ export class TrieSearch<T extends object>
 
       this.#cachePhrase?.set(TrieSearch.#getCacheKey(phrase, limit), results);
 
-      return results
+      return results;
 
       function aggregate(node, ha)
       {

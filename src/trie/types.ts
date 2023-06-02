@@ -1,3 +1,22 @@
+/**
+ * Defines the trie data structure. The `value` key is a specific list of items; all other string keys may refer to
+ * another TrieNode.
+ */
+export type TrieNode<T extends object> = {
+   [key: string]: TrieNode<T> | undefined;
+} & {
+   value?: T[];
+};
+
+/**
+ * Defines a reducer function used to accumulate and reduce data found in searching.
+ */
+export type TrieReducerFn<T extends object> =
+ (accumulator: T[], phrase: string, matches: T[], indexField: string) => T[];
+
+/**
+ * Options for TrieSearch.
+ */
 export type TrieSearchOptions = {
    /**
     * Is caching enabled; default: true.
@@ -32,19 +51,19 @@ export type TrieSearchOptions = {
    maxCacheSize?: number;
 
    /**
-    * The size of the prefix for keys; Minimum length of a key to store and search. By default, this is 1, but you
+    * The size of the prefix for keys; minimum length of a key to store and search. By default, this is 1, but you
     * might improve performance by using 2 or 3.
     */
    min?: number;
 
    /**
-    * How phrases are split on search: default: `/\s/g`. By default, this is any whitespace. Set to `false` if you have
-    * whitespace in your keys! Set it something else to split along other boundaries.
+    * How phrases are split on search; default: `/\s/g`. By default, this is any whitespace. Set to `false` if you have
+    * whitespace in your keys! Set it to something else to split along other boundaries.
     */
    splitOnRegEx?: RegExp | false;
 
    /**
-    * How phrases are split on retrieval / get: default: `/\s/g`.
+    * How phrases are split on retrieval / get; default: `/\s/g`.
     */
    splitOnGetRegEx?: RegExp | false;
 
@@ -53,9 +72,3 @@ export type TrieSearchOptions = {
     */
    tokenizer?: (str: string) => IterableIterator<string>
 }
-
-/**
- * Defines a reducer function used to accumulate and reduce data found in searching.
- */
-export type TrieReducerFn<T extends object> =
- (accumulator: T[], phrase: string, matches: T[], indexField: string) => T[];

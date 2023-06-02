@@ -4,8 +4,9 @@ import {
    klona }     from '#runtime/util/object';
 
 import type {
+   HashArrayOptions,
    Key,
-   KeyFields } from '../types';
+   KeyFields } from './types';
 
 /**
  * Defines the operations for cloning items.
@@ -33,18 +34,35 @@ enum CloneOps {
  */
 export class HashArray<T extends object>
 {
+   /**
+    * An enum used in {@link HashArray.clone} determining how items are handled.
+    */
    static readonly CloneOps = CloneOps;
 
+   /**
+    * A single string or an array of strings / arrays representing what fields on added objects are to be used as keys
+    * for the trie search / HashArray.
+    */
    readonly #keyFields: KeyFields;
 
+   /**
+    * Stores all items added to the HashArray by order of addition.
+    */
    readonly #list: T[];
 
+   /**
+    * Stores all items by associated key.
+    */
    readonly #map: Map<string, T[]> = new Map<string, T[]>();
 
+   /**
+    * Stores HashArray options.
+    */
    readonly #options: HashArrayOptions<T> = {};
 
    /**
-    * @param {string | KeyFields} [keyFields] -
+    * @param {string | KeyFields} [keyFields] - A single string or an array of strings / arrays representing what
+    * fields on added objects are to be used as keys for the trie search / HashArray.
     *
     * @param {HashArrayOptions<T>}   [options] - Options.
     */
@@ -96,6 +114,8 @@ export class HashArray<T extends object>
    // ----------------------------------------------------------------------------------------------------------------
 
    /**
+    * Add items or list of items to the HashArray.
+    *
     * @param {...(T | Iterable<T>)}  items - Items to add.
     *
     * @returns {HashArray<T>} This instance.
@@ -124,8 +144,8 @@ export class HashArray<T extends object>
    // ----------------------------------------------------------------------------------------------------------------
 
    /**
-    * Clones this HashArray. By default, this returns an empty HashArray with cloned KeyFields. Set `items` in options
-    * to true to copy the items. If you need to clone each item then set `cloneItems` to true as well.
+    * Clones this HashArray. By default, returning an empty HashArray with cloned KeyFields. Set `items` in options
+    * to `CloneOps.SHALLOW` to copy the items. To fully clone all items set `CloneOps.DEEP`.
     *
     * @param {object}               [opts] - Optional parameters.
     *
@@ -133,8 +153,8 @@ export class HashArray<T extends object>
     *        no items are included in the clone. Supply `SHALLOW` and items are copied. Supply `DEEP` and items are
     *        cloned as well.
     *
-    * @param {HashArrayOptions<T>}  [opts.options] - Optional change to options for the clone that is merged with current
-    *        HashArray options.
+    * @param {HashArrayOptions<T>}  [opts.options] - Optional change to options for the clone that is merged with
+    *        current HashArray options.
     */
    clone({ items = CloneOps.NONE, options }: { items?: CloneOps, options?: HashArrayOptions<T>} = {}): HashArray<T>
    {
@@ -230,7 +250,7 @@ export class HashArray<T extends object>
    }
 
    /**
-    * @returns {Generator<[string, T], void, unknown>} Generator of flattened entries.
+    * @returns {IterableIterator<[string, T]>} Generator of flattened entries.
     * @yields {[string, T]}
     */
    *entriesFlat(): IterableIterator<[string, T]>
@@ -273,7 +293,7 @@ export class HashArray<T extends object>
    /**
     * Detects if the given item collides with an existing key / item pair.
     *
-    * @param {Partial<T>}  item - A partial item to check for collision
+    * @param {Partial<T>}  item - A partial item to check for collision.
     *
     * @returns {boolean} Is there a collision?
     */
@@ -304,7 +324,7 @@ export class HashArray<T extends object>
    // ----------------------------------------------------------------------------------------------------------------
 
    /**
-    * Removes all items.
+    * Clears all items.
     *
     * @returns {HashArray<T>} This instance.
     */
@@ -327,7 +347,6 @@ export class HashArray<T extends object>
    {
       let removed = false;
 
-      // Iterate over each item.
       for (const item of items)
       {
          // Remove the item from the map.
@@ -356,18 +375,15 @@ export class HashArray<T extends object>
    {
       let removed = false;
 
-      // Iterate over each provided key.
       for (const key of keys)
       {
          // Retrieve a shallow copy of the items associated with the key.
          const items = this.#map.get(key)?.slice();
 
-         // If there are any items for the key...
          if (items)
          {
             removed = true;
 
-            // Iterate over each item.
             for (const item of items)
             {
                // Remove the item from the associated keys in the map.
@@ -378,7 +394,6 @@ export class HashArray<T extends object>
             }
          }
 
-         // Delete the key from the map.
          this.#map.delete(key);
       }
 
@@ -649,19 +664,4 @@ export class HashArray<T extends object>
          }
       }
    }
-}
-
-/**
- * Options for HashArray.
- */
-export type HashArrayOptions<T> = {
-   /**
-    * When true, any attempt to add items that collide with any items in the HashArray will be ignored.
-    */
-   ignoreDuplicates?: boolean;
-
-   /**
-    * An external array that is used for the list backing this HashArray allowing any owner direct access to the list.
-    */
-   list?: T[];
 }

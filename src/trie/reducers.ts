@@ -1,3 +1,16 @@
+/**
+ * Provides a reducer that requires all phrases match performing an `AND` union operation.
+ *
+ * @template T
+ *
+ * @param {T[]}      accumulator - Results from previous phrase iteration.
+ *
+ * @param {string}   phrase - Current phrase.
+ *
+ * @param {T[]}      matches - Matches for current phrase.
+ *
+ * @param {string}   indexField - Required to uniquely identify items during union.
+ */
 export function unionReducer<T extends object>(accumulator: T[], phrase: string, matches: T[], indexField: string): T[]
 {
    if (accumulator === void 0) { return matches; }
