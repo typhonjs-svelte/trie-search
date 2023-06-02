@@ -1,3 +1,3 @@
-export *       from './TrieSearch';
-export *       from './reducers';
-export type *  from './types';
+export * from './TrieSearch';
+export * from './reducers';
+export * from './types';
