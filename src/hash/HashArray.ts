@@ -1,12 +1,14 @@
 import {
    isIterable,
    isObject,
-   klona }     from '#runtime/util/object';
+   klona }              from '#runtime/util/object';
+
+import { getKeyValue }  from './functions';
 
 import type {
    HashArrayOptions,
    Key,
-   KeyFields } from './types';
+   KeyFields }          from './types';
 
 /**
  * Defines the operations for cloning items.
@@ -190,7 +192,7 @@ export class HashArray<T extends object>
    {
       const callback = typeof callbackOrIndex === 'function' ? callbackOrIndex : (item) =>
       {
-         const val = HashArray.objectAt(item, callbackOrIndex);
+         const val = getKeyValue(item, callbackOrIndex);
          return val !== void 0 && val !== false;
       };
 
@@ -236,7 +238,7 @@ export class HashArray<T extends object>
    {
       const items = this.getAll(key);
 
-      items.forEach((item) => callback(HashArray.objectAt(item, index), item));
+      items.forEach((item) => callback(getKeyValue(item, index), item));
 
       return this;
    }
@@ -301,7 +303,7 @@ export class HashArray<T extends object>
    {
       for (const keyField of this.#keyFields)
       {
-         if (this.has(HashArray.objectAt(item, keyField))) { return true; }
+         if (this.has(getKeyValue(item, keyField))) { return true; }
       }
 
       return false;
@@ -545,7 +547,7 @@ export class HashArray<T extends object>
       {
          for (const keyField of this.#keyFields)
          {
-            const key = HashArray.objectAt(item, keyField);
+            const key = getKeyValue(item, keyField);
 
             if (key && this.#map.get(key)?.includes?.(item) && target.#map.get(key)?.includes?.(item))
             {
@@ -556,41 +558,6 @@ export class HashArray<T extends object>
       }
 
       return output;
-   }
-
-   // ----------------------------------------------------------------------------------------------------------------
-   // Utility
-   // ----------------------------------------------------------------------------------------------------------------
-
-   /**
-    * Returns the value for Key in the given item.
-    *
-    * @param {object}   item - The target item or partial item.
-    *
-    * @param {Key}      key - The Key to lookup in item.
-    *
-    * @returns {any} Value for key in item.
-    */
-   static objectAt(item: object, key: Key): any
-   {
-      if (!isObject(item)) { throw new Error(`HashArray.objectAt error: 'item' must be an object.`); }
-
-      if (typeof key === 'string') { return item[key]; }
-
-      if (!Array.isArray(key)) { return void 0; }
-
-      if (key.length === 0) { return void 0; }
-
-      // else assume key is an array.
-      for (const k of key)
-      {
-         if (typeof k !== 'string') { return void 0; }
-
-         if (item) { item = item[k]; }
-         else { break; }
-      }
-
-      return item;
    }
 
    // Internal -------------------------------------------------------------------------------------------------------
@@ -606,7 +573,7 @@ export class HashArray<T extends object>
 
       for (const keyField of this.#keyFields)
       {
-         const key = HashArray.objectAt(item, keyField);
+         const key = getKeyValue(item, keyField);
 
          if (key)
          {
@@ -645,7 +612,7 @@ export class HashArray<T extends object>
    {
       for (const keyField of this.#keyFields)
       {
-         const key = HashArray.objectAt(item, keyField);
+         const key = getKeyValue(item, keyField);
 
          if (key)
          {

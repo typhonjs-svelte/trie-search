@@ -1,6 +1,7 @@
-import { HashArray } from './HashArray';
+import { getKeyValue }  from './functions';
+import { HashArray }    from './HashArray';
 
-import type { Key }  from '../types';
+import type { Key }     from './types';
 
 /**
  * Provides extra examples of how various additional operations can be added on top of HashArray. These operations
@@ -41,7 +42,7 @@ export class HashArrayUtil
 
       source.forEachDeep(key, index, (value, item) =>
       {
-         if (weightKey !== void 0) { value *= (HashArray.objectAt(item, weightKey) / weightsTotal); }
+         if (weightKey !== void 0) { value *= (getKeyValue(item, weightKey) / weightsTotal); }
 
          ret += value;
          tot++;
@@ -71,7 +72,7 @@ export class HashArrayUtil
 
       source.forEachDeep(key, index, (value, item) =>
       {
-         if (weightKey !== void 0) { value *= HashArray.objectAt(item, weightKey); }
+         if (weightKey !== void 0) { value *= getKeyValue(item, weightKey); }
 
          ret += value;
       });
