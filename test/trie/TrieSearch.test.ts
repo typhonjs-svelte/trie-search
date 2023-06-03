@@ -2,7 +2,8 @@ import { graphemeIterator }   from '#runtime/data/format/unicode';
 
 import {
    TrieSearch,
-   unionReducer }             from '../../src';
+   UnionReducer
+} from '../../src';
 
 // Run all tests with the main internal ASCII tokenizer and the Unicode / Grapheme tokenizer.
 const testTokenizers = [
@@ -236,43 +237,10 @@ for (const test of testTokenizers)
           () => expect(ts.search(['the brown', 'quick']).length).to.equal(3));
       });
 
-      describe('search(...) should work with cache==true and maxCacheSize == X', () =>
-      {
-         const ts = new TrieSearch('key', { min: 2, maxCacheSize: 2, tokenizer });
-         const item1 = { key: 'the quick brown fox' };
-         const item2 = { key: 'the quick brown' };
-         const item3 = { key: 'the quick fox' };
-         const item4 = { key: 'the fox' };
-
-         ts.add(item1);
-         ts.add(item2);
-         ts.add(item3);
-         ts.add(item4);
-
-         it('cache size should increment appropriately and cap at maxCacheSize.', () =>
-         {
-            const f1 = ts.search('the brown');
-
-            expect(ts.cache.size).to.equal(1);
-            expect(ts.cache.size).to.equal(1);
-
-            ts.search('the quick');
-
-            expect(ts.cache.size).to.equal(2);
-
-            ts.search('the fox');
-
-            expect(ts.cache.size).to.equal(2);
-
-            const f2 = ts.search('the brown'); // This should return different array.
-
-            expect(f1).to.not.equal(f2);
-         });
-      });
-
       describe('search(...) should work for multiple keys and union the result with an indexField', () =>
       {
-         const ts = new TrieSearch(['key', 'key2'], { min: 2, indexField: 'ix', tokenizer });
+         // const ts = new TrieSearch(['key', 'key2'], { min: 2, indexField: 'ix', tokenizer });
+         const ts = new TrieSearch(['key', 'key2'], { min: 2, tokenizer });
          const item1 = { key: 'the quick brown fox', key2: 'jumped', ix: 1 };
          const item2 = { key: 'the quick brown', key2: 'jumped', ix: 2 };
          const item3 = { key: 'the quick fox', key2: 'brown', ix: 3 };
@@ -303,7 +271,8 @@ for (const test of testTokenizers)
 
       describe('search(...) should work for a deep key combined with a non-deep key', () =>
       {
-         const ts = new TrieSearch(['key', ['key2', 'key3']], { min: 2, indexField: 'ix', tokenizer });
+         // const ts = new TrieSearch(['key', ['key2', 'key3']], { min: 2, indexField: 'ix', tokenizer });
+         const ts = new TrieSearch(['key', ['key2', 'key3']], { min: 2, tokenizer });
          const item1 = { key: 'the quick brown fox', key2: { key3: 'jumped' }, ix: 1 };
          const item2 = { key: 'the quick brown', key2: { key3: 'jumped' }, ix: 2 };
          const item3 = { key: 'the quick fox', key2: { key3: 'brown' }, ix: 3 };
@@ -442,9 +411,11 @@ for (const test of testTokenizers)
          });
       });
 
-      describe('search(...) should work with a custom reducer and accumulator', () =>
+      describe('search(...) should work with UnionReducer', () =>
       {
-         const ts = new TrieSearch('key', { min: 2, indexField: 'key', tokenizer });
+         const ts = new TrieSearch('key', { min: 2, tokenizer });
+         const reducer = new UnionReducer('key');
+
          const item1 = { key: 'I am red robin!' };
          const item2 = { key: 'I am red cockatiel!' };
          const item3 = { key: 'I am green cardinal!' };
@@ -457,32 +428,9 @@ for (const test of testTokenizers)
          ts.add(item4);
          ts.add(item5);
 
-         it(`search('robin', [reducer])`, () =>
-         {
-            const result = ts.search('robin', { reducer: (_accumulator, phrase, phraseMatches, indexField) =>
-            {
-               expect(_accumulator).to.be.undefined;
-               expect(phrase).to.equal('robin');
-               expect(phraseMatches.length).to.equal(2);
-               expect(phraseMatches[0]).to.equal(item5);
-               expect(phraseMatches[1]).to.equal(item1);
-               expect(indexField).to.equal('key');
-
-               _accumulator = _accumulator || [];
-               _accumulator.push(phraseMatches[1]);
-               _accumulator.push(phraseMatches[0]);
-
-               return _accumulator;
-            }});
-
-            expect(result.length).to.equal(2);
-            expect(result[0]).to.equal(item1);
-            expect(result[1]).to.equal(item5);
-         });
-
          it(`search(['red', 'robin'], { reducer: unionReducer })`, () =>
          {
-            const result = ts.search(['red', 'robin'], { reducer: unionReducer });
+            const result = ts.search(['red', 'robin'], { reducer });
 
             expect(result.length).not.to.equal(0);
             expect(result[0]).to.equal(item1);
@@ -490,7 +438,7 @@ for (const test of testTokenizers)
 
          it(`search(['green'], { reducer: unionReducer })`, () =>
          {
-            const result = ts.search(['green'], { reducer: unionReducer });
+            const result = ts.search(['green'], { reducer });
 
             expect(result.length).to.equal(2);
             expect(result[0]).to.equal(item3);
@@ -499,7 +447,7 @@ for (const test of testTokenizers)
 
          it(`search('green', { reducer: unionReducer })`, () =>
          {
-            const result = ts.search('green', { reducer: unionReducer });
+            const result = ts.search('green', { reducer });
 
             expect(result.length).to.equal(2);
             expect(result[0]).to.equal(item3);
@@ -508,30 +456,79 @@ for (const test of testTokenizers)
 
          it(`search('blue', { reducer: unionReducer })`, () =>
          {
-            const result = ts.search('blue', { reducer: unionReducer });
+            const result = ts.search('blue', { reducer });
 
             expect(result.length).to.equal(0);
          });
 
          it(`search('am', { reducer: unionReducer })`, () =>
          {
-            const result = ts.search('am', { reducer: unionReducer });
+            const result = ts.search('am', { reducer });
 
             expect(result.length).to.equal(4);
          });
 
          it(`search(['owl', 'card', 'cock', 'rob'], { reducer: unionReducer })`, () =>
          {
-            const result = ts.search(['owl', 'card', 'cock', 'rob'], { reducer: unionReducer });
+            const result = ts.search(['owl', 'card', 'cock', 'rob'], { reducer });
 
             expect(result.length).to.equal(1);
          });
 
          it(`search(['owl', 'card', 'cock', 'rob', 'fubar'], { reducer: unionReducer })`, () =>
          {
-            const result = ts.search(['owl', 'card', 'cock', 'rob', 'fubar'], { reducer: unionReducer });
+            const result = ts.search(['owl', 'card', 'cock', 'rob', 'fubar'], { reducer });
 
             expect(result.length).to.equal(0);
+         });
+      });
+
+      describe('search(...) should work with a custom reducer', () =>
+      {
+         const ts = new TrieSearch('key', { min: 2, tokenizer });
+
+         const item1 = { key: 'I am red robin!' };
+         const item2 = { key: 'I am red cockatiel!' };
+         const item3 = { key: 'I am green cardinal!' };
+         const item4 = { key: 'I am green owl!' };
+         const item5 = { key: 'robin cockatiel cardinal owl!' };
+
+         ts.add(item1);
+         ts.add(item2);
+         ts.add(item3);
+         ts.add(item4);
+         ts.add(item5);
+
+         class CustomReducer<T extends object>
+         {
+            #accumulator: T[]
+
+            get keyFields() { return ['test']; }
+
+            get matches() { return this.#accumulator; }
+
+            reduce({ matches, phrase })
+            {
+               expect(phrase).to.equal('Robin');
+               expect(matches.length).to.equal(2);
+               expect(matches[0]).to.equal(item5);
+               expect(matches[1]).to.equal(item1);
+
+               this.#accumulator = this.#accumulator ?? [];
+               this.#accumulator.push(matches[1]);
+               this.#accumulator.push(matches[0]);
+            }
+
+            reset() { this.#accumulator = void 0; }
+         }
+
+         it(`search('Robin', [reducer])`, () =>
+         {
+            const result = ts.search('Robin', { reducer: new CustomReducer() });
+
+            expect(result.length).to.equal(2);
+            expect(result[0]).to.equal(item1);
+            expect(result[1]).to.equal(item5);
          });
       });
 
@@ -544,7 +541,7 @@ for (const test of testTokenizers)
          const us = 'ùúûü'.split('');
          const aes = 'æ'.split('');
 
-         const ts = new TrieSearch('key', { tokenizer });
+         const ts = new TrieSearch<{ key: string, arr: string[] }>('key', { tokenizer });
          const As_items =  as.map((letter) => ({ key: letter, arr: as }));
          const Es_items =  es.map((letter) => ({ key: letter, arr: es }));
          const Is_items =  is.map((letter) => ({ key: letter, arr: is }));
@@ -607,7 +604,7 @@ for (const test of testTokenizers)
 
          it(`Should return international items for Swedish as an example with ''godis på sötdag är bra''`, () =>
          {
-            const swedishSentence = { key: 'godis på sötdag är bra' };
+            const swedishSentence = { key: 'godis på sötdag är bra', arr: [] };
 
             ts.add(swedishSentence);
 

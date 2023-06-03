@@ -11,7 +11,7 @@ import type {
    Unsubscriber,
    Writable }                 from '#svelte/store';
 
-import type { TrieReducerFn } from '#runtime/data/struct/search/trie';
+import type { ITrieSearchReducer }     from '#runtime/data/struct/search/trie';
 
 import type { TrieSearchQueryOptions } from './types';
 
@@ -50,9 +50,9 @@ export class TrieSearchQuery<T extends object> extends DynArrayReducer<T>
    readonly #storeQuery: Writable<string | Iterable<string> | undefined> = writable(this.#currentQuery);
 
    /**
-    * The TrieSearch specific reducer function.
+    * The TrieSearch specific reducer instance.
     */
-   #trieReducer: TrieReducerFn<T> | undefined;
+   #trieReducer: ITrieSearchReducer<T> | undefined;
 
    /**
     * Holds a weak reference to the associated TrieSearch instance.
@@ -119,7 +119,7 @@ export class TrieSearchQuery<T extends object> extends DynArrayReducer<T>
    get limit(): Writable<number | undefined> { return this.#storeLimit; }
 
    /**
-    * @returns {TrieReducerFn<T>} Any associated TrieSearch reducer function.
+    * @returns {ITrieSearchReducer<T>} Any associated TrieSearch reducer function.
     */
    get trieReducer() { return this.#trieReducer; }
 
@@ -134,13 +134,13 @@ export class TrieSearchQuery<T extends object> extends DynArrayReducer<T>
    get query(): Writable<string | Iterable<string> | undefined> { return this.#storeQuery; }
 
    /**
-    * @param {TrieReducerFn<T> | undefined}  trieReducer - A new trie reducer function.
+    * @param {ITrieSearchReducer<T> | undefined}  trieReducer - A new trie reducer function.
     */
-   set trieReducer(trieReducer: TrieReducerFn<T> | undefined)
+   set trieReducer(trieReducer: ITrieSearchReducer<T> | undefined)
    {
-      if (trieReducer !== void 0 && typeof trieReducer !== 'function')
+      if (trieReducer !== void 0 && typeof trieReducer?.reduce !== 'function')
       {
-         throw new TypeError(`TrieSearchQuery.set error: 'trieReducer' must be a function.`);
+         throw new TypeError(`TrieSearchQuery.set error: 'trieReducer' must implement ITrieSearchReducer.`);
       }
 
       this.#trieReducer = trieReducer;

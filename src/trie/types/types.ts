@@ -8,11 +8,11 @@ export type TrieNode<T extends object> = {
    value?: T[];
 };
 
-/**
- * Defines a reducer function used to accumulate and reduce data found in searching.
- */
-export type TrieReducerFn<T extends object> =
- (accumulator: T[], phrase: string, matches: T[], indexField: string) => T[];
+export type TrieSearchReducerData<T> = {
+   matches: T[];
+
+   phrase: string;
+}
 
 /**
  * Options for TrieSearch.
@@ -34,11 +34,6 @@ export type TrieSearchOptions = {
     * Ignores case in lookups; default: true.
     */
    ignoreCase?: boolean;
-
-   /**
-    * If specified, determines which rows are unique when using search(); default: undefined.
-    */
-   indexField?: string;
 
    /**
     * Default: false

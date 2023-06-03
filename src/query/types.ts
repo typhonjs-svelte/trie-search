@@ -1,4 +1,4 @@
-import type { TrieReducerFn } from '#runtime/data/struct/search/trie';
+import type { ITrieSearchReducer } from '#runtime/data/struct/search/trie';
 
 /**
  * Options for TrieSearchQuery.
@@ -10,7 +10,7 @@ export type TrieSearchQueryOptions<T extends object> = {
    limit?: number;
 
    /**
-    * An initial trie reducer function to set.
+    * An initial trie reducer instance to set.
     */
-   trieReducer?: TrieReducerFn<T>
+   trieReducer?: ITrieSearchReducer<T>
 }
