@@ -489,12 +489,12 @@ export class TrieSearch<T extends object>
 
       let cachedMatches, node;
 
-      const words = this.#options.splitOnGetRegEx ? phrase.split(this.#options.splitOnGetRegEx) : [phrase];
-
       if (this.#cachePhrase && (cachedMatches = this.#cachePhrase.get(TrieSearch.#getCacheKey(phrase, limit))))
       {
          return cachedMatches;
       }
+
+      const words = this.#options.splitOnGetRegEx ? phrase.split(this.#options.splitOnGetRegEx) : [phrase];
 
       let ret = void 0;
 
