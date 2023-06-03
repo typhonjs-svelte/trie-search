@@ -1,4 +1,6 @@
-import { HashArray } from '../../src';
+import {
+   getKeyValue,
+   HashArray }    from '../../src';
 
 describe('HashArray API Errors', () =>
 {
@@ -32,8 +34,8 @@ describe('HashArray API Errors', () =>
       {
          it('object is not an object', () =>
          {
-            expect(() => HashArray.objectAt(null, 'key')).to.throw(
-             `HashArray.objectAt error: 'item' must be an object.`);
+            expect(() => getKeyValue(null, 'key')).to.throw(
+             `getKeyValue error: 'item' must be an object.`);
          })
       });
    });

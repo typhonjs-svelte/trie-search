@@ -1,4 +1,6 @@
-import { HashArray } from '../../src';
+import {
+   getKeyValue,
+   HashArray }    from '../../src';
 
 type Item = { key: string };
 type Item2 = { key1: string, key2: string };
@@ -1109,35 +1111,35 @@ describe('HashArray API Tests', () =>
 
             it(`Should retrieve 'deeper'`, () =>
             {
-               assert.equal(HashArray.objectAt(data, ['key', 'deep']), deeper);
+               assert.equal(getKeyValue(data, ['key', 'deep']), deeper);
             });
 
             it('Should return undefined for no continuation in keys', () =>
             {
-               assert.isUndefined(HashArray.objectAt(data, ['key', 'deep', 'deeper', 'foo', 'bar']));
+               assert.isUndefined(getKeyValue(data, ['key', 'deep', 'deeper', 'foo', 'bar']));
             });
 
             it('Should return undefined for no keys', () =>
             {
-               assert.isUndefined(HashArray.objectAt(data, void 0));
+               assert.isUndefined(getKeyValue(data, void 0));
             });
 
             it('Should return undefined for no keys', () =>
             {
-               assert.isUndefined(HashArray.objectAt(data, []));
+               assert.isUndefined(getKeyValue(data, []));
             });
 
             it('Should return undefined for bad key', () =>
             {
-               assert.isUndefined(HashArray.objectAt(data, ['key', null]));
+               assert.isUndefined(getKeyValue(data, ['key', null]));
             });
 
             it('Should return undefined for bad path', () =>
             {
-               assert.isUndefined(HashArray.objectAt(data, 'bogus'));
-               assert.isUndefined(HashArray.objectAt(data, ['bogus']));
-               assert.isUndefined(HashArray.objectAt(data, ['key', 'bogus']));
-               assert.isUndefined(HashArray.objectAt(data, ['key', 'deep', 'bogus']));
+               assert.isUndefined(getKeyValue(data, 'bogus'));
+               assert.isUndefined(getKeyValue(data, ['bogus']));
+               assert.isUndefined(getKeyValue(data, ['key', 'bogus']));
+               assert.isUndefined(getKeyValue(data, ['key', 'deep', 'bogus']));
             });
          });
       });
