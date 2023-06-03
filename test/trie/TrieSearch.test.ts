@@ -507,10 +507,12 @@ for (const test of testTokenizers)
 
             get matches() { return this.#accumulator; }
 
-            reduce({ matches, phrase })
+            reduce({ matches, phrase, index })
             {
                expect(phrase).to.equal('Robin');
                expect(matches.length).to.equal(2);
+               expect(index).to.equal(0);
+
                expect(matches[0]).to.equal(item5);
                expect(matches[1]).to.equal(item1);
 

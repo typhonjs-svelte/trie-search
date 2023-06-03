@@ -310,13 +310,15 @@ export class TrieSearch<T extends object>
       {
          let resultsHA: HashArray<T>;
 
+         let index = 0;
+
          for (const phrase of phrases)
          {
             const matches = this.#getImpl(phrase, limit, haKeyFields);
 
             if (reducer)
             {
-               reducer.reduce({ matches, phrase });
+               reducer.reduce({ matches, phrase, index: index++ });
             }
             else
             {
@@ -330,7 +332,7 @@ export class TrieSearch<T extends object>
 
          if (reducer)
          {
-            reducer.reduce({ matches, phrase: phrases });
+            reducer.reduce({ matches, phrase: phrases, index: 0 });
          }
          else
          {

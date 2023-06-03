@@ -9,8 +9,19 @@ export type TrieNode<T extends object> = {
 };
 
 export type TrieSearchReducerData<T> = {
+   /**
+    * The current phrase index.
+    */
+   index: number;
+
+   /**
+    * Matches found from the current phrase.
+    */
    matches: T[];
 
+   /**
+    * The current phrase.
+    */
    phrase: string;
 }
 
