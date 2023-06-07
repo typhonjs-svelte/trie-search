@@ -1,71 +1,106 @@
-import { getKeyValue }     from '#runtime/data/struct/hash/array';
+import { getKeyValue }           from '#runtime/data/struct/hash/array';
 
 import type {
    Key,
    ITrieSearchReducer,
-   TrieSearchReducerData } from '../types';
+   TrieSearchReducerData,
+   TrieSearchReducerResetData }  from '../types';
 
 /**
  * Provides an ITrieSearchReducer implementation to accumulate a union / `AND` of matches across all phrases provided in
- * a search query. This reducer should only be used when there are multiple phrases in a query.
+ * a search query.
+ *
+ * @template T
  */
 export class UnionReducer<T extends object> implements ITrieSearchReducer<T>
 {
+   /**
+    * Provides a lookup key for unique values in items being reduced.
+    */
    readonly #indexField: Key;
 
+   /**
+    * Stores the accumulation results after each batch of matches is processed.
+    */
    #accumulator: T[];
+
+   /**
+    * Stores the main list from {@link TrieSearch.search} method which is set on `reset`.
+    */
+   #list: T[];
+
+   /**
+    * With each batch of matches stores the accumulation keys.
+    */
+   #set: Set<any> = new Set<any>();
 
    constructor(indexField: Key)
    {
       this.#indexField = indexField;
    }
 
+   /**
+    * @returns {Key | KeyFields | undefined} Returns the index field key.
+    */
    get keyFields() { return this.#indexField; }
 
-   get matches() { return this.#accumulator; }
+   /**
+    * @returns {T[]} Returns the union of all matches.
+    */
+   get matches()
+   {
+      // Push results into the main list.
+      const matches = this.#list;
+      matches.push(...this.#accumulator);
 
+      // Remove unused references.
+      this.#accumulator = void 0;
+      this.#list = void 0;
+
+      return matches;
+   }
+
+   /**
+    * Accumulates and reduces each batch of matches for one or more phrases.
+    *
+    * @param {T[]}   matches - Matches of current iteration / batch.
+    */
    reduce({ matches }: TrieSearchReducerData<T>)
    {
+      // In the first iteration simply set matches to the accumulator returning immediately.
       if (this.#accumulator === void 0)
       {
          this.#accumulator = matches;
          return;
       }
 
-      const map = {};
-      const maxLength = Math.max(this.#accumulator.length, matches.length);
       const results = [];
 
-      let i, id;
-      let l = 0;
-
-      // One loop, O(N) for max length of accumulator or matches.
-      for (i = 0; i < maxLength; i++)
+      // Add accumulator keys to Set.
+      for (let i = this.#accumulator.length; --i >= 0;)
       {
-         if (i < this.#accumulator.length)
-         {
-            id = getKeyValue(this.#accumulator[i], this.#indexField);
-            map[id] = map[id] ? map[id] : 0;
-            map[id]++;
+         this.#set.add(getKeyValue(this.#accumulator[i], this.#indexField))
+      }
 
-            if (map[id] === 2) { results[l++] = this.#accumulator[i]; }
-         }
-
-         if (i < matches.length)
-         {
-            id = getKeyValue(matches[i], this.#indexField);
-            map[id] = map[id] ? map[id] : 0;
-            map[id]++;
-
-            if (map[id] === 2) { results[l++] = matches[i]; }
-         }
+      // Iterate through current matches and only add to results if the index field is in accumulated Set.
+      for (let i = 0; i < matches.length; i++)
+      {
+         if (this.#set.has(getKeyValue(matches[i], this.#indexField))) { results.push(matches[i]); }
       }
 
       this.#accumulator = results;
+      this.#set.clear();
    }
 
-   reset()
+   /**
+    * Reset state.
+    *
+    * @param {T[]}   list - The main output list from {@link TrieSearch.search}.
+    */
+   reset({ list }: TrieSearchReducerResetData<T>)
    {
+      this.#list = list;
+
       this.#accumulator = void 0;
    }
 }
