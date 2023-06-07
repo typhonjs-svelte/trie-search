@@ -299,11 +299,12 @@ export class TrieSearch<T extends object>
 
       let haKeyFields: Key | KeyFields = this.#keyFields;
 
-      // Reset reducer and retrieve KeyFields.
+      // Reset reducer and retrieve potentially more specific KeyFields.
       if (reducer)
       {
-         reducer.reset(list);
-         haKeyFields = reducer.keyFields;
+         reducer.reset({ list, phrases });
+
+         haKeyFields = reducer.keyFields ?? haKeyFields;
       }
 
       if (isIterable(phrases))
