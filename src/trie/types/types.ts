@@ -8,6 +8,9 @@ export type TrieNode<T extends object> = {
    value?: T[];
 };
 
+/**
+ * Data provided when reducing a batch of matches.
+ */
 export type TrieSearchReducerData<T> = {
    /**
     * The current phrase index.
@@ -23,6 +26,21 @@ export type TrieSearchReducerData<T> = {
     * The current phrase.
     */
    phrase: string;
+}
+
+/**
+ * Data provided when resetting reducers.
+ */
+export type TrieSearchReducerResetData<T> = {
+   /**
+    * The current phrase index.
+    */
+   list: T[];
+
+   /**
+    * The phrases being searched.
+    */
+   phrases: string | Iterable<string>;
 }
 
 /**
