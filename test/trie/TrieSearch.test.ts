@@ -237,9 +237,131 @@ for (const test of testTokenizers)
           () => expect(ts.search(['the brown', 'quick']).length).to.equal(3));
       });
 
-      describe('search(...) should work for multiple keys and union the result with an indexField', () =>
+      describe('search(...) should work for one key / one phrase and return intersection of results', () =>
       {
-         // const ts = new TrieSearch(['key', 'key2'], { min: 2, indexField: 'ix', tokenizer });
+         const people = [
+            { name: 'andrew', location: 'sweden', age: 21 },
+            { name: 'andrew', location: 'sweden', age: 24 },
+            { name: 'andrew', location: 'brussels', age: 37 },
+            { name: 'andrew', location: 'johnsonville', age: 25 }
+         ];
+
+         const ts = new TrieSearch('name', { min: 3, tokenizer });
+
+         ts.add(people);
+
+         const searchAndrew = ts.search('andrew');
+         const searchAndrewSweden = ts.search('andrew sweden');
+
+         it(`search('andrew') should match all items`, () => expect(searchAndrew).to.deep.equal(people));
+
+         it(`search('andrew sweden') should match no items`, () => expect(searchAndrewSweden).to.deep.equal([]));
+      });
+
+      describe('search(...) should work for multiple keys / one phrase and return intersection of results', () =>
+      {
+         const people = [
+            { name: 'andrew', location: 'sweden', age: 21 },
+            { name: 'andrew', location: 'sweden', age: 24 },
+            { name: 'andrew', location: 'brussels', age: 37 },
+            { name: 'andrew', location: 'johnsonville', age: 25 }
+         ];
+
+         const ts = new TrieSearch(['name', 'location'], { min: 3, tokenizer });
+
+         ts.add(people);
+
+         const searchAndrew = ts.search('andrew');
+         const searchAndrewSweden = ts.search('andrew sweden');
+         const searchSwedenSweden = ts.search('sweden sweden');
+
+         it(`search('andrew') should match all items`, () => expect(searchAndrew).to.deep.equal(people));
+
+         it(`search('andrew sweden') should match 2 items`, () => expect(searchAndrewSweden).to.deep.equal([
+            { name: 'andrew', location: 'sweden', age: 21 },
+            { name: 'andrew', location: 'sweden', age: 24 },
+         ]));
+
+         it(`search('sweden sweden') should match 2 items`, () => expect(searchSwedenSweden).to.deep.equal([
+            { name: 'andrew', location: 'sweden', age: 21 },
+            { name: 'andrew', location: 'sweden', age: 24 },
+         ]));
+      });
+
+      describe('search(...) should work for one key / multiple phrases and return all results', () =>
+      {
+         const people = [
+            { name: 'andrew', location: 'sweden', age: 21 },
+            { name: 'andrew', location: 'sweden', age: 24 },
+            { name: 'andrew', location: 'brussels', age: 37 },
+            { name: 'andrew', location: 'johnsonville', age: 25 }
+         ];
+
+         const ts = new TrieSearch('name', { min: 3, tokenizer });
+
+         ts.add(people);
+
+         const searchAndrewSweden = ts.search(['andrew', 'sweden']);
+         const searchSwedenSweden = ts.search(['sweden', 'sweden']);
+
+         it(`search(['andrew', 'sweden']) should match all items`,
+          () => expect(searchAndrewSweden).to.deep.equal(people));
+
+         it(`search(['sweden', 'sweden']) should match no items`,
+          () => expect(searchSwedenSweden).to.deep.equal([]));
+      });
+
+      describe('search(...) should work for two keys / multiple phrases and return intersection of results', () =>
+      {
+         const people = [
+            { name: 'andrew', location: 'sweden', age: 21 },
+            { name: 'andrew', location: 'sweden', age: 24 },
+            { name: 'andrew', location: 'brussels', age: 37 },
+            { name: 'andrew', location: 'johnsonville', age: 25 }
+         ];
+
+         const ts = new TrieSearch([['name'], ['location']], { min: 3, tokenizer });
+
+         ts.add(people);
+
+         const searchAndrewSweden = ts.search(['andrew', 'sweden']);
+         const searchSwedenSweden = ts.search(['sweden', 'sweden']);
+
+         it(`search(['andrew', 'sweden']) should match all items`,
+          () => expect(searchAndrewSweden).to.deep.equal(people));
+
+         it(`search(['andrew', 'sweden']) should match all items`,
+          () => expect(searchSwedenSweden).to.deep.equal([
+             { name: 'andrew', location: 'sweden', age: 21 },
+             { name: 'andrew', location: 'sweden', age: 24 }
+          ]));
+      });
+
+      describe('search(...) should work for two keys / multiple phrases & words returning intersection of results', () =>
+      {
+         const people = [
+            { name: 'andrew', location: 'andrew', age: 21 },
+            { name: 'andrew', location: 'andrew', age: 24 },
+            { name: 'andrew', location: 'brussels', age: 37 },
+            { name: 'anubis', location: 'johnsonville', age: 25 }
+         ];
+
+         const ts = new TrieSearch([['name'], ['location']], { min: 3, tokenizer });
+
+         ts.add(people);
+
+         const searchAndrewAndrew = ts.search(['andrew andrew andrew', 'andrew andrew', 'andrew']);
+
+         it(`search(['andrew andrew andrew', 'andrew andrew', 'andrew']) should match 3 items`,
+          () => expect(searchAndrewAndrew).to.deep.equal([
+             { name: 'andrew', location: 'andrew', age: 21 },
+             { name: 'andrew', location: 'andrew', age: 24 },
+             { name: 'andrew', location: 'brussels', age: 37 }
+          ]));
+      });
+
+      describe('search(...) should work for multiple keys and intersect the result with an indexField', () =>
+      {
          const ts = new TrieSearch(['key', 'key2'], { min: 2, tokenizer });
          const item1 = { key: 'the quick brown fox', key2: 'jumped', ix: 1 };
          const item2 = { key: 'the quick brown', key2: 'jumped', ix: 2 };
@@ -251,22 +373,29 @@ for (const test of testTokenizers)
          ts.add(item3);
          ts.add(item4);
 
-         it(`search('the quick') should return all entries`, () => expect(ts.search('the quick').length).to.equal(4));
+         it(`search('the quick') should return all entries`,
+          () => expect(ts.search('the quick')).to.deep.equal([item1, item2, item3, item4]));
 
-         it(`search('the brown') should return all entries`, () => expect(ts.search('the brown').length).to.equal(4));
+         it(`search('the brown') should return all entries`,
+          () => expect(ts.search('the brown')).to.deep.equal([item1, item2, item3, item4]));
 
-         it(`search('the fox') should return 3 entries`, () => expect(ts.search('the fox').length).to.equal(3));
+         it(`search('the fox') should return 3 entries`,
+          () => expect(ts.search('the fox')).to.deep.equal([item1, item3, item4]));
 
-         it(`search('fox brown') should return 3 entries`, () => expect(ts.search('fox brown').length).to.equal(3));
+         it(`search('fox brown') should return 3 entries`,
+          () => expect(ts.search('fox brown')).to.deep.equal([item1, item3, item4]));
 
-         it(`search('brown fox') should return 3 entries`, () => expect(ts.search('brown fox').length).to.equal(3));
+         it(`search('brown fox') should return 3 entries`,
+          () => expect(ts.search('brown fox')).to.deep.equal([item1, item3, item4]));
 
-         it(`search('brown z') should return all entries`, () => expect(ts.search('brown z').length).to.equal(4));
+         it(`search('brown z') should return all entries`,
+          () => expect(ts.search('brown z')).to.deep.equal([item1, item2, item3, item4]));
 
-         it(`search('br f') should return all entries`, () => expect(ts.search('br f').length).to.equal(4));
+         it(`search('br f') should return all entries`,
+          () => expect(ts.search('br f')).to.deep.equal([item1, item2, item3, item4]));
 
          it(`search('jum b c d e f g h') should return 2 entries, ignoring the shortness of all subsequent words`,
-          () => expect(ts.search('jum b c d e f g h').length).to.equal(2));
+          () => expect(ts.search('jum b c d e f g h')).to.deep.equal([item1, item2]));
       });
 
       describe('search(...) should work for a deep key combined with a non-deep key', () =>
@@ -318,7 +447,7 @@ for (const test of testTokenizers)
             expect(ts.root['b']['l']['a']['h']).to.exist;
          });
 
-         it(`search('blah') and search('whatever') for each subkey should work`, () =>
+         it(`search('blah') for each subkey should work`, () =>
          {
             expect(ts.search('b')[0]).to.equal(item);
             expect(ts.search('bl')[0]).to.equal(item);
@@ -432,54 +561,49 @@ for (const test of testTokenizers)
          {
             const result = ts.search(['red', 'robin'], { reducer });
 
-            expect(result.length).not.to.equal(0);
-            expect(result[0]).to.equal(item1);
+            expect(result).to.deep.equal([item1]);
          });
 
          it(`search(['green'], { reducer: unionReducer })`, () =>
          {
             const result = ts.search(['green'], { reducer });
 
-            expect(result.length).to.equal(2);
-            expect(result[0]).to.equal(item3);
-            expect(result[1]).to.equal(item4);
+            expect(result).to.deep.equal([item3, item4]);
          });
 
          it(`search('green', { reducer: unionReducer })`, () =>
          {
             const result = ts.search('green', { reducer });
 
-            expect(result.length).to.equal(2);
-            expect(result[0]).to.equal(item3);
-            expect(result[1]).to.equal(item4);
+            expect(result).to.deep.equal([item3, item4]);
          });
 
          it(`search('blue', { reducer: unionReducer })`, () =>
          {
             const result = ts.search('blue', { reducer });
 
-            expect(result.length).to.equal(0);
+            expect(result).to.deep.equal([]);
          });
 
          it(`search('am', { reducer: unionReducer })`, () =>
          {
             const result = ts.search('am', { reducer });
 
-            expect(result.length).to.equal(4);
+            expect(result).to.deep.equal([item1, item2, item3, item4]);
          });
 
          it(`search(['owl', 'card', 'cock', 'rob'], { reducer: unionReducer })`, () =>
          {
             const result = ts.search(['owl', 'card', 'cock', 'rob'], { reducer });
 
-            expect(result.length).to.equal(1);
+            expect(result).to.deep.equal([item5]);
          });
 
          it(`search(['owl', 'card', 'cock', 'rob', 'fubar'], { reducer: unionReducer })`, () =>
          {
             const result = ts.search(['owl', 'card', 'cock', 'rob', 'fubar'], { reducer });
 
-            expect(result.length).to.equal(0);
+            expect(result).to.deep.equal([]);
          });
       });
 
