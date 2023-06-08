@@ -3,8 +3,7 @@
  * `TrieSearch.test.ts`.
  */
 
-
-import {TrieSearch} from "../../src";
+import { TrieSearch }   from '../../src';
 
 describe('TrieSearch - General tests', () =>
 {
@@ -124,5 +123,41 @@ describe('TrieSearch - General tests', () =>
       ts.clear();
 
       ts.destroy();
+   });
+
+   describe('search(...) should work with a custom reducer w/ no keyFields returned', () =>
+   {
+      const ts = new TrieSearch('key');
+
+      const item = { key: 'A key' };
+
+      ts.add(item);
+
+      class CustomReducer<T extends object>
+      {
+         #accumulator: T[]
+
+         // This is what we are testing to hit the branch in TrieSearch when keyFields is undefined.
+         get keyFields() { return void 0; }
+
+         get matches() { return this.#accumulator; }
+
+         reduce({ matches })
+         {
+            this.#accumulator = this.#accumulator ?? matches;
+         }
+
+         reset({ keyFields, list, options, phrases })
+         {
+            this.#accumulator = void 0;
+         }
+      }
+
+      it(`search('key', [reducer])`, () =>
+      {
+         const result = ts.search('key', { reducer: new CustomReducer() });
+
+         expect(result).to.deep.equal([item]);
+      });
    });
 });
