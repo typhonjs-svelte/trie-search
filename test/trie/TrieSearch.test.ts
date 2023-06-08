@@ -596,6 +596,42 @@ for (const test of testTokenizers)
          });
       });
 
+      describe('search(...) should work with options.ignoreCase: false', () =>
+      {
+         const ts = new TrieSearch('key', { ignoreCase: false, tokenizer });
+
+         const item = {key: 'HaS CaPS'};
+
+         ts.add(item);
+
+         it('root is mapped with caps', () =>
+         {
+            expect(ts.root['H']).to.exist;
+            expect(ts.root['H']['a']).to.exist;
+            expect(ts.root['H']['a']['S']).to.exist;
+
+            expect(ts.root['C']).to.exist;
+            expect(ts.root['C']['a']).to.exist;
+            expect(ts.root['C']['a']['P']).to.exist;
+            expect(ts.root['C']['a']['P']['S']).to.exist;
+         });
+
+         it(`search('has') returns no results`, () =>
+         {
+            expect(ts.search('has')).to.deep.equal([]);
+         });
+
+         it(`search('HaS') returns results`, () =>
+         {
+            expect(ts.search('HaS')).to.deep.equal([item]);
+         });
+
+         it(`search(['HaS']) returns results`, () =>
+         {
+            expect(ts.search(['HaS'])).to.deep.equal([item]);
+         });
+      });
+
       describe('search(...) should work with a custom reducer', () =>
       {
          const ts = new TrieSearch('key', { min: 2, tokenizer });
