@@ -1,3 +1,5 @@
+import {KeyFields} from "../../hash";
+
 /**
  * Defines the trie data structure. The `value` key is a specific list of items; all other string keys may refer to
  * another TrieNode.
@@ -13,6 +15,11 @@ export type TrieNode<T extends object> = {
  */
 export type TrieSearchReducerData<T> = {
    /**
+    * The phrase after {@link TrieSearchOptions.ignoreCase} applied.
+    */
+   ignoreCasePhrase: string;
+
+   /**
     * The current phrase index.
     */
    index: number;
@@ -23,9 +30,14 @@ export type TrieSearchReducerData<T> = {
    matches: T[];
 
    /**
-    * The current phrase.
+    * The original phrase.
     */
    phrase: string;
+
+   /**
+    * The split words from the phrase.
+    */
+   words: string[];
 }
 
 /**
@@ -33,12 +45,22 @@ export type TrieSearchReducerData<T> = {
  */
 export type TrieSearchReducerResetData<T> = {
    /**
-    * The current phrase index.
+    * Clone of key fields from host TrieSearch instance.
+    */
+   keyFields: KeyFields;
+
+   /**
+    * The output results array from {@link TrieSearch.search}.
     */
    list: T[];
 
    /**
-    * The phrases being searched.
+    * Clone of options from host TrieSearch instance.
+    */
+   options: TrieSearchOptions;
+
+   /**
+    * The phrases being searched; not lowercase if {@link TrieSearchOptions.ignoreCase} is true.
     */
    phrases: string | Iterable<string>;
 }

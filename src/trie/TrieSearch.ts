@@ -38,7 +38,7 @@ export class TrieSearch<T extends object>
    /**
     * Provides a LRU cache for recent search queries. Caches all items matched per phrase.
     */
-   readonly #cachePhrase: QuickLRU<string, T[]>;
+   readonly #cachePhrase: QuickLRU<string, { matches: T[], words: string[] }>;
 
    /**
     * Caches the object associated with a given word in `#findNode`.
@@ -52,6 +52,12 @@ export class TrieSearch<T extends object>
    readonly #keyFields: KeyFields;
 
    /**
+    * A clone of `#keyFields` returned from {@link TrieSearch.keyFields} and also sent to any reducer in
+    * {@link TrieSearch.search}.
+    */
+   readonly #keyFieldsClone: KeyFields;
+
+   /**
     * Stores whether this instance has been destroyed.
     */
    #isDestroyed: boolean = false;
@@ -60,6 +66,11 @@ export class TrieSearch<T extends object>
     * Stores the TrieSearch options.
     */
    readonly #options: TrieSearchOptions;
+
+   /**
+    * A clone of `#options` sent to any reducer in {@link TrieSearch.search}.
+    */
+   readonly #optionsClone: TrieSearchOptions;
 
    /**
     * Number of nodes in the trie data structure.
@@ -86,6 +97,8 @@ export class TrieSearch<T extends object>
    {
       this.#keyFields = keyFields ? (Array.isArray(keyFields) ? keyFields : [keyFields]) : [];
 
+      this.#keyFieldsClone = klona(this.#keyFields);
+
       // Note: idFieldOrFunction not set / undefined default.
       this.#options = Object.assign({}, {
          cache: true,
@@ -102,12 +115,16 @@ export class TrieSearch<T extends object>
 
       TrieSearch.#validateOptions(this.#options);
 
+      this.#optionsClone = klona(this.#options);
+
       this.#root = {};
       this.#size = 0;
 
       if (this.#options.cache)
       {
-         this.#cachePhrase = new QuickLRU<string, T[]>({ maxSize: this.#options.maxCacheSize });
+         this.#cachePhrase = new QuickLRU<string, { matches: T[], words: string[] }>(
+          { maxSize: this.#options.maxCacheSize });
+
          this.#cacheWord = new QuickLRU<string, object>({ maxSize: this.#options.maxCacheSize });
       }
    }
@@ -117,7 +134,7 @@ export class TrieSearch<T extends object>
     */
    get keyFields(): KeyFields
    {
-      return klona(this.#keyFields);
+      return this.#keyFieldsClone;
    }
 
    /**
@@ -232,21 +249,21 @@ export class TrieSearch<T extends object>
 
       if (this.#options.splitOnRegEx && this.#options.splitOnRegEx.test(key))
       {
-         const phrases = key.split(this.#options.splitOnRegEx);
-         const emptySplitMatch = phrases.filter((p) => { return TrieSearch.#REGEX_IS_WHITESPACE.test(p); });
-         const selfMatch = phrases.filter((p) => { return p === key; });
-         const selfIsOnlyMatch = selfMatch.length + emptySplitMatch.length === phrases.length;
+         const words = key.split(this.#options.splitOnRegEx);
+         const emptySplitMatch = words.filter((p) => { return TrieSearch.#REGEX_IS_WHITESPACE.test(p); });
+         const selfMatch = words.filter((p) => { return p === key; });
+         const selfIsOnlyMatch = selfMatch.length + emptySplitMatch.length === words.length;
 
-         // There is an edge case that a RegEx with a positive lookahead like:
-         //  /?=[A-Z]/ // Split on capital letters for a camelcase sentence
-         // Will then match again when we call map, creating an infinite stack loop.
+         // There is an edge case that a RegEx with a positive lookahead like `/?=[A-Z]/` split on capital letters for
+         // a camelcase sentence will then match again when we call map, creating an infinite stack loop.
          if (!selfIsOnlyMatch)
          {
-            for (let i = 0, l = phrases.length; i < l; i++)
+            for (let i = 0, l = words.length; i < l; i++)
             {
-               if (!TrieSearch.#REGEX_IS_WHITESPACE.test(phrases[i])) { this.map(phrases[i], value); }
+               if (!TrieSearch.#REGEX_IS_WHITESPACE.test(words[i])) { this.map(words[i], value); }
             }
 
+            // Only insert full unsplit phrase if this option is true; continues with rest of `map` method.
             if (!this.#options.insertFullUnsplitKey) { return; }
          }
       }
@@ -302,12 +319,39 @@ export class TrieSearch<T extends object>
       // Reset reducer and retrieve potentially more specific KeyFields.
       if (reducer)
       {
-         reducer.reset({ list, phrases });
+         reducer.reset({ keyFields: this.#keyFieldsClone, list, options: this.#optionsClone, phrases });
 
          haKeyFields = reducer.keyFields ?? haKeyFields;
       }
 
-      if (isIterable(phrases))
+      if (typeof phrases === 'string')
+      {
+         const ignoreCasePhrase = this.#options.ignoreCase ? phrases.toLowerCase() : phrases;
+
+         let matchesAndWords: { matches: T[], words: string[] };
+
+         let cachedMatches;
+
+         if (this.#cachePhrase && (cachedMatches = this.#cachePhrase.get(
+          TrieSearch.#getCacheKey(ignoreCasePhrase, limit))))
+         {
+            matchesAndWords = cachedMatches;
+         }
+         else
+         {
+            matchesAndWords = this.#getImpl(ignoreCasePhrase, limit, haKeyFields);
+         }
+
+         if (reducer)
+         {
+            reducer.reduce({ ignoreCasePhrase, index: 0, ...matchesAndWords, phrase: phrases });
+         }
+         else
+         {
+            new HashArray<T>(haKeyFields, { list }).add(matchesAndWords.matches);
+         }
+      }
+      else if (isIterable(phrases))
       {
          let resultsHA: HashArray<T>;
 
@@ -315,29 +359,31 @@ export class TrieSearch<T extends object>
 
          for (const phrase of phrases)
          {
-            const matches = this.#getImpl(phrase, limit, haKeyFields);
+            const ignoreCasePhrase = this.#options.ignoreCase ? phrase.toLowerCase() : phrase;
 
-            if (reducer)
+            let matchesAndWords: { matches: T[], words: string[] };
+
+            let cachedMatches;
+
+            if (this.#cachePhrase && (cachedMatches = this.#cachePhrase.get(
+             TrieSearch.#getCacheKey(ignoreCasePhrase, limit))))
             {
-               reducer.reduce({ matches, phrase, index: index++ });
+               matchesAndWords = cachedMatches;
             }
             else
             {
-               resultsHA = resultsHA ? resultsHA.add(matches) : new HashArray<T>(haKeyFields, { list }).add(matches);
+               matchesAndWords = this.#getImpl(ignoreCasePhrase, limit, haKeyFields);
             }
-         }
-      }
-      else
-      {
-         const matches = this.#getImpl(phrases, limit, haKeyFields);
 
-         if (reducer)
-         {
-            reducer.reduce({ matches, phrase: phrases, index: 0 });
-         }
-         else
-         {
-            new HashArray<T>(haKeyFields, { list }).add(matches);
+            if (reducer)
+            {
+               reducer.reduce({ ignoreCasePhrase, index: index++, ...matchesAndWords, phrase });
+            }
+            else
+            {
+               resultsHA = resultsHA ? resultsHA.add(matchesAndWords.matches) :
+                new HashArray<T>(haKeyFields, { list }).add(matchesAndWords.matches);
+            }
          }
       }
 
@@ -482,19 +528,10 @@ export class TrieSearch<T extends object>
     *
     * @param {Key | KeyFields} haKeyFields -
     *
-    * @returns {T[]} An array of items found from `phrase`.
+    * @returns {{ matches: T[], words: string[] }} An array of items found from `phrase`.
     */
-   #getImpl(phrase: string, limit: number, haKeyFields: Key | KeyFields): T[]
+   #getImpl(phrase: string, limit: number, haKeyFields: Key | KeyFields): { matches: T[], words: string[] }
    {
-      phrase = this.#options.ignoreCase ? phrase.toLowerCase() : phrase;
-
-      let cachedMatches, node;
-
-      if (this.#cachePhrase && (cachedMatches = this.#cachePhrase.get(TrieSearch.#getCacheKey(phrase, limit))))
-      {
-         return cachedMatches;
-      }
-
       const words = this.#options.splitOnGetRegEx ? phrase.split(this.#options.splitOnGetRegEx) : [phrase];
 
       let ret = void 0;
@@ -503,7 +540,7 @@ export class TrieSearch<T extends object>
       // a list in the constructor or clone method. In the performance critical block below `matchesList` will contain
       // the final value to return after the loop completes.
 
-      let matchesList;
+      let matchesList: T[], node: TrieNode<T>;
 
       for (const word of words)
       {
@@ -518,9 +555,9 @@ export class TrieSearch<T extends object>
 
       const matches: T[] = ret ? matchesList : [];
 
-      this.#cachePhrase?.set(TrieSearch.#getCacheKey(phrase, limit), matches);
+      this.#cachePhrase?.set(TrieSearch.#getCacheKey(phrase, limit), { matches, words });
 
-      return matches;
+      return { matches, words };
 
       function aggregate(node, ha)
       {

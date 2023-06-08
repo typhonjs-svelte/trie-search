@@ -612,10 +612,10 @@ for (const test of testTokenizers)
          const ts = new TrieSearch('key', { min: 2, tokenizer });
 
          const item1 = { key: 'I am red robin!' };
-         const item2 = { key: 'I am red cockatiel!' };
+         const item2 = { key: 'I am blue cockatiel!' };
          const item3 = { key: 'I am green cardinal!' };
          const item4 = { key: 'I am green owl!' };
-         const item5 = { key: 'robin cockatiel cardinal owl!' };
+         const item5 = { key: 'robin red cockatiel cardinal owl!' };
 
          ts.add(item1);
          ts.add(item2);
@@ -627,30 +627,48 @@ for (const test of testTokenizers)
          {
             #accumulator: T[]
 
-            get keyFields() { return ['test']; }
+            get keyFields() { return ['key']; }
 
             get matches() { return this.#accumulator; }
 
-            reduce({ matches, phrase, index })
+            reduce({ ignoreCasePhrase, index, matches, phrase, words })
             {
-               expect(phrase).to.equal('Robin');
-               expect(matches.length).to.equal(2);
+               expect(ignoreCasePhrase).to.equal('robin red');   // lowercase due to default `options.ignoreCase`.
+
                expect(index).to.equal(0);
 
+               expect(matches.length).to.equal(2);
                expect(matches[0]).to.equal(item5);
                expect(matches[1]).to.equal(item1);
+
+               expect(phrase).to.equal('Robin Red');   // Original phrase.
+
+               expect(words.length).to.equal(2);
+               expect(words[0]).to.equal('robin');
+               expect(words[1]).to.equal('red');
 
                this.#accumulator = this.#accumulator ?? [];
                this.#accumulator.push(matches[1]);
                this.#accumulator.push(matches[0]);
             }
 
-            reset() { this.#accumulator = void 0; }
+            reset({ keyFields, list, options, phrases })
+            {
+               expect(keyFields).to.deep.equal(['key']);
+
+               expect(list).to.deep.equal([]);
+
+               assert.isObject(options);
+
+               expect(phrases).to.equal('Robin Red');
+
+               this.#accumulator = void 0;
+            }
          }
 
          it(`search('Robin', [reducer])`, () =>
          {
-            const result = ts.search('Robin', { reducer: new CustomReducer() });
+            const result = ts.search('Robin Red', { reducer: new CustomReducer() });
 
             expect(result.length).to.equal(2);
             expect(result[0]).to.equal(item1);
