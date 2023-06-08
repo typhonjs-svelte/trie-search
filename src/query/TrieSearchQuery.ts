@@ -152,6 +152,7 @@ export class TrieSearchQuery<T extends object> extends DynArrayReducer<T>
     */
    destroy()
    {
+      // Unsubscribe from TrieSearch instance and local stores.
       for (const unsubscribe of this.#unsubscribers) { unsubscribe(); }
 
       this.#unsubscribers.length = 0;
@@ -244,12 +245,13 @@ export class TrieSearchQuery<T extends object> extends DynArrayReducer<T>
    /**
     * Handles change notifications from the associated TrieSearch instance.
     *
-    * @param {TrieSearch<T> | undefined}  trieSearch - The associated TrieSearch instance.
+    * @param {object}   options - Optional parameters.
+    *
+    * @param {string}   options.action - The associated TrieSearch action.
     */
-   #updateTrieSearch(trieSearch)
+   #updateTrieSearch({ action }: { action: string })
    {
-      // An undefined TrieSearch instance signals that it has been destroyed, so destroy this query instance.
-      if (trieSearch === void 0)
+      if (action === 'destroy')
       {
          this.destroy();
       }

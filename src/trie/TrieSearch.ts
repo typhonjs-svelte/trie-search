@@ -1,20 +1,21 @@
-import QuickLRU            from '#runtime/data/struct/cache/quick-lru';
+import QuickLRU                  from '#runtime/data/struct/cache/quick-lru';
 
 import {
    isIterable,
    isObject,
-   klona }                 from '#runtime/util/object';
+   klona }                       from '#runtime/util/object';
 
 import {
    getKeyValue,
-   HashArray }             from '#runtime/data/struct/hash/array';
+   HashArray }                   from '#runtime/data/struct/hash/array';
 
 import type {
    ITrieSearchReducer,
    Key,
    KeyFields,
    TrieNode,
-   TrieSearchOptions }     from './types';
+   TrieSearchOptions,
+   TrieSearchSubscribeHandler }  from './types';
 
 /**
  * A Trie is a data structure designed for quick reTRIEval of objects by string search. This was designed for use with
@@ -85,7 +86,8 @@ export class TrieSearch<T extends object>
    /**
     * Stores the subscriber handlers registered through {@link TrieSearch.subscribe}.
     */
-   readonly #subscribers: ((trieSearch: TrieSearch<T> | undefined) => unknown)[] = [];
+   // readonly #subscribers: (({ action: 'add' | 'clear' | 'destroy', trieSearch: TrieSearch<T> | undefined) => unknown)[] = [];
+   readonly #subscribers: TrieSearchSubscribeHandler<T>[] = [];
 
    /**
     * @param {string | KeyFields} [keyFields] - A single string or an array of strings / arrays representing what
@@ -130,6 +132,14 @@ export class TrieSearch<T extends object>
    }
 
    /**
+    * @returns {boolean} Whether this TrieSearch instance has been destroyed.
+    */
+   get isDestroyed(): boolean
+   {
+      return this.#isDestroyed;
+   }
+
+   /**
     * @returns {KeyFields} A clone of the current key fields.
     */
    get keyFields(): KeyFields
@@ -142,7 +152,7 @@ export class TrieSearch<T extends object>
     */
    get root(): TrieNode<T>
    {
-      if (this.#isDestroyed) { throw new Error(`TrieSearch error: This instance has been destroyed.`); }
+      if (this.#isDestroyed) { throw new Error('TrieSearch error: This instance has been destroyed.'); }
 
       return this.#root;
    }
@@ -164,7 +174,7 @@ export class TrieSearch<T extends object>
    {
       if (items.length === 0) { return; }
 
-      if (this.#isDestroyed) { throw new Error(`TrieSearch error: This instance has been destroyed.`); }
+      if (this.#isDestroyed) { throw new Error('TrieSearch error: This instance has been destroyed.'); }
 
       // Only need to clear the phrase cache.
       if (this.#cachePhrase?.size) { this.#cachePhrase.clear(); }
@@ -184,7 +194,10 @@ export class TrieSearch<T extends object>
       // Notify subscribers; IE TrieSearchQuery instances.
       if (this.#subscribers.length)
       {
-         for (let i = 0; i < this.#subscribers.length; i++) { this.#subscribers[i](this); }
+         for (let i = 0; i < this.#subscribers.length; i++)
+         {
+            this.#subscribers[i]({ action: 'add', trieSearch: this });
+         }
       }
 
       return this;
@@ -197,7 +210,7 @@ export class TrieSearch<T extends object>
     */
    clear(): this
    {
-      if (this.#isDestroyed) { throw new Error(`TrieSearch error: This instance has been destroyed.`); }
+      if (this.#isDestroyed) { throw new Error('TrieSearch error: This instance has been destroyed.'); }
 
       this.#root = {};
       this.#size = 0;
@@ -208,7 +221,10 @@ export class TrieSearch<T extends object>
       // Notify subscribers; IE TrieSearchQuery instances.
       if (this.#subscribers.length)
       {
-         for (let i = 0; i < this.#subscribers.length; i++) { this.#subscribers[i](this); }
+         for (let i = 0; i < this.#subscribers.length; i++)
+         {
+            this.#subscribers[i]({ action: 'clear', trieSearch: this });
+         }
       }
 
       return this;
@@ -218,7 +234,7 @@ export class TrieSearch<T extends object>
     * Destroys this TrieSearch instance. Removing all data and preventing new data from being added. Any subscribers
     * are notified with an undefined argument in the callback signaling that the associated instance is destroyed.
     */
-   destroy()
+   destroy(): this
    {
       this.#isDestroyed = true;
       this.#root = {};
@@ -230,10 +246,15 @@ export class TrieSearch<T extends object>
       // Notify subscribers; IE TrieSearchQuery instances.
       if (this.#subscribers.length)
       {
-         for (let i = 0; i < this.#subscribers.length; i++) { this.#subscribers[i](void 0); }
+         for (let i = 0; i < this.#subscribers.length; i++)
+         {
+            this.#subscribers[i]({ action: 'destroy', trieSearch: this });
+         }
       }
 
       this.#subscribers.length = 0;
+
+      return this;
    }
 
    /**
@@ -245,7 +266,7 @@ export class TrieSearch<T extends object>
     */
    map(key: string, value: T): this
    {
-      if (this.#isDestroyed) { throw new Error(`TrieSearch error: This instance has been destroyed.`); }
+      if (this.#isDestroyed) { throw new Error('TrieSearch error: This instance has been destroyed.'); }
 
       if (this.#options.splitOnRegEx && this.#options.splitOnRegEx.test(key))
       {
@@ -404,13 +425,14 @@ export class TrieSearch<T extends object>
     *
     * @returns {() => void} Unsubscribe function.
     */
-   subscribe(handler)
+   subscribe(handler: TrieSearchSubscribeHandler<T>)
    {
       this.#subscribers.push(handler);
 
-      handler(this);
+      handler({ action: 'subscribe', trieSearch: this });
 
       // Return unsubscribe function.
+      /* c8 ignore next 5 */
       return () =>
       {
          const index = this.#subscribers.findIndex((sub) => sub === handler);

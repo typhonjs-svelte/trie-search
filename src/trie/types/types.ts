@@ -1,4 +1,5 @@
-import {KeyFields} from "../../hash";
+import type { TrieSearch } from '../TrieSearch';
+import type { KeyFields }  from '.';
 
 /**
  * Defines the trie data structure. The `value` key is a specific list of items; all other string keys may refer to
@@ -38,7 +39,7 @@ export type TrieSearchReducerData<T> = {
     * The split words from the phrase.
     */
    words: string[];
-}
+};
 
 /**
  * Data provided when resetting reducers.
@@ -63,7 +64,7 @@ export type TrieSearchReducerResetData<T> = {
     * The phrases being searched; not lowercase if {@link TrieSearchOptions.ignoreCase} is true.
     */
    phrases: string | Iterable<string>;
-}
+};
 
 /**
  * Options for TrieSearch.
@@ -82,23 +83,24 @@ export type TrieSearchOptions = {
    expandRegexes?: [{ regex: RegExp, alternate: string }];
 
    /**
-    * Ignores case in lookups; default: true.
+    * Ignores case in lookups; default: `true`.
     */
    ignoreCase?: boolean;
 
    /**
-    * Default: false
+    * In `TrieSearch.map` when `splitOnRegEx` is defined and `insertFullUnsplitKey` is true the full key will also be
+    * mapped; default: `false`.
     */
    insertFullUnsplitKey?: boolean;
 
    /**
-    * The max cache size before removing entries in a LRU manner; default: 64.
+    * The max cache size before removing entries in a LRU manner; default: `64`.
     */
    maxCacheSize?: number;
 
    /**
-    * The size of the prefix for keys; minimum length of a key to store and search. By default, this is 1, but you
-    * might improve performance by using 2 or 3.
+    * The size of the prefix for keys; minimum length of a key to store and search. By default, this is `1`, but you
+    * might improve performance by using `2` or `3`.
     */
    min?: number;
 
@@ -114,7 +116,13 @@ export type TrieSearchOptions = {
    splitOnGetRegEx?: RegExp | false;
 
    /**
-    * Provide a custom tokenizer that is used to split keys.
+    * Provide a custom tokenizer that is used to split keys. IE a Grapheme / Unicode tokenizer.
     */
    tokenizer?: (str: string) => IterableIterator<string>
-}
+};
+
+/**
+ * Defines the readable store subscriber / handler function.
+ */
+export type TrieSearchSubscribeHandler<T extends object> = ({ action, trieSearch }:
+ { action?: 'add' | 'clear' | 'destroy' | 'subscribe', trieSearch?: TrieSearch<T> }) => unknown;
