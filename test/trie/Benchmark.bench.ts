@@ -26,7 +26,7 @@ const loading = false;        // Loading data tests.
 const stress = true;          // Stress testing.
 
 const trieNew = true;         // This package TrieSearch
-const trieNewUnicode = true;  // This package TrieSearch (Unicode tokenizer)
+const trieNewUnicode = false;  // This package TrieSearch (Unicode tokenizer)
 const trieOrig = false;       // Original trie-search package.
 
 // Test types

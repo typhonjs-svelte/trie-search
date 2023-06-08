@@ -50,6 +50,13 @@ describe('TrieSearch - General tests', () =>
          expect(ts.size).to.equal(0);
       });
 
+      it('add(item) w/ missing key is ignored', () =>
+      {
+         expect(ts.size).to.equal(0);
+         ts.add({ bad: 'key' });
+         expect(ts.size).to.equal(0);
+      });
+
       it('empty search() has no effect', () =>
       {
          expect(ts.size).to.equal(0);
@@ -147,7 +154,7 @@ describe('TrieSearch - General tests', () =>
             this.#accumulator = this.#accumulator ?? matches;
          }
 
-         reset({ keyFields, list, options, phrases })
+         reset()
          {
             this.#accumulator = void 0;
          }
