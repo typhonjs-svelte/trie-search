@@ -3,7 +3,7 @@
  * `TrieSearch.test.ts`.
  */
 
-import { TrieSearch }   from '../../src';
+import { TrieSearch }   from '../../src/trie';
 
 describe('TrieSearch - General tests', () =>
 {

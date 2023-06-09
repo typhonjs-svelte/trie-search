@@ -1,4 +1,4 @@
-import { TrieSearch }      from '../../src';
+import { TrieSearch }      from '../../src/trie';
 import { TrieSearchQuery } from '../../src/query';
 
 type Item = { id: number, value: string };

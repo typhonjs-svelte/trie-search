@@ -3,7 +3,7 @@ import { bench }              from 'vitest';
 
 import { graphemeIterator }   from '#runtime/data/format/unicode';
 
-import { TrieSearch }         from '../../src';
+import { TrieSearch }         from '../../src/trie';
 
 import { default as TrieSearchOrig } from 'trie-search';
 

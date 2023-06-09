@@ -1,6 +1,6 @@
 import {
    getKeyValue,
-   HashArray }    from '../../src';
+   HashArray }    from '../../src/hash';
 
 describe('HashArray API Errors', () =>
 {

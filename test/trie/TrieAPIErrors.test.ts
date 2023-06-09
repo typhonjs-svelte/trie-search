@@ -1,4 +1,4 @@
-import { TrieSearch }   from '../../src';
+import { TrieSearch }   from '../../src/trie';
 
 describe(`TrieSearch - API Errors`, () =>
 {

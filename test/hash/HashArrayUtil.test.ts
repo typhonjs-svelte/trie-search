@@ -1,6 +1,6 @@
 import {
    HashArray,
-   HashArrayUtil } from '../../src';
+   HashArrayUtil } from '../../src/hash';
 
 type Item = { key: string };
 type Item2 = { key1: string, key2: string };

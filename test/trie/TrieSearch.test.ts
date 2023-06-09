@@ -2,7 +2,7 @@ import { graphemeIterator }   from '#runtime/data/format/unicode';
 
 import {
    TrieSearch,
-   UnionReducer }             from '../../src';
+   UnionReducer }             from '../../src/trie';
 
 // Run all tests with the main internal ASCII tokenizer and the Unicode / Grapheme tokenizer.
 const testTokenizers = [
