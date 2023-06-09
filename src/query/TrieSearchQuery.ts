@@ -83,12 +83,12 @@ export class TrieSearchQuery<T extends object> extends DynArrayReducer<T>
          throw new TypeError(`TrieSearchQuery error: 'options' must be an object.`);
       }
 
-      if (options?.trieReducer !== void 0 && typeof options.trieReducer !== 'function')
+      if (options?.trieReducer !== void 0 && typeof options.trieReducer?.reduce !== 'function')
       {
-         throw new TypeError(`TrieSearchQuery error: 'options.trieReducer' must be a function.`);
+         throw new TypeError(`TrieSearchQuery error: 'options.trieReducer' must implement ITrieSearchReducer.`);
       }
 
-      if (options?.limit !== void 0 && !Number.isInteger(options.limit) && options.limit < 0)
+      if (options?.limit !== void 0 && (!Number.isInteger(options.limit) || options.limit < 0))
       {
          throw new TypeError(`TrieSearchQuery error: 'options.limit' must be an integer >= 0.`);
       }
