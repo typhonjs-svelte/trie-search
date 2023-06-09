@@ -40,6 +40,11 @@ export class TrieSearchQuery<T extends object> extends DynArrayReducer<T>
    #currentQuery: string | Iterable<string> | undefined = '';
 
    /**
+    * Stores the current destroyed state.
+    */
+   #isDestroyed: boolean = false;
+
+   /**
     * Provides the external reactive writable store controlling the search results limit.
     */
    readonly #storeLimit: Writable<number | undefined>;
@@ -119,6 +124,11 @@ export class TrieSearchQuery<T extends object> extends DynArrayReducer<T>
    get limit(): Writable<number | undefined> { return this.#storeLimit; }
 
    /**
+    * @returns {boolean} The current destroyed state of this query instance.
+    */
+   get isDestroyed(): boolean { return this.#isDestroyed; }
+
+   /**
     * @returns {ITrieSearchReducer<T>} Any associated TrieSearch reducer function.
     */
    get trieReducer() { return this.#trieReducer; }
@@ -159,6 +169,8 @@ export class TrieSearchQuery<T extends object> extends DynArrayReducer<T>
 
       this.#trieSearch = void 0;
 
+      this.#isDestroyed = true;
+
       // Remove any stored data and update DynArrayReducer index.
       this.#data.length = 0;
       super.index.update();
@@ -174,6 +186,8 @@ export class TrieSearchQuery<T extends object> extends DynArrayReducer<T>
 
       // Retrieve TrieSearch reference. It may have been garbage collected.
       const trieSearch = this.trieSearch;
+
+      /* c8 ignore next 8 */
       if (trieSearch === void 0)
       {
          console.warn(

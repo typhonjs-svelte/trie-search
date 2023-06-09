@@ -24,34 +24,34 @@ describe(`TrieSearchQuery - API Errors`, () =>
       it(`'options.trieReducer' is not an instance of ITrieSearchReducer`, () =>
       {
          // @ts-expect-error
-         expect(() => new TrieSearchQuery(ts, {trieReducer: false})).to.throw(TypeError,
+         expect(() => new TrieSearchQuery(ts, { trieReducer: false })).to.throw(TypeError,
           `TrieSearchQuery error: 'options.trieReducer' must implement ITrieSearchReducer.`, 'did not throw');
       });
 
       it(`'options.trieReducer' is not an instance of ITrieSearchReducer`, () =>
       {
          // @ts-expect-error
-         expect(() => new TrieSearchQuery(ts, {trieReducer: false})).to.throw(TypeError,
+         expect(() => new TrieSearchQuery(ts, { trieReducer: false })).to.throw(TypeError,
           `TrieSearchQuery error: 'options.trieReducer' must implement ITrieSearchReducer.`, 'did not throw');
       });
 
       it(`'options.limit' is not a number`, () =>
       {
          // @ts-expect-error
-         expect(() => new TrieSearchQuery(ts, {limit: 'bad'})).to.throw(TypeError,
+         expect(() => new TrieSearchQuery(ts, { limit: 'bad' })).to.throw(TypeError,
           `TrieSearchQuery error: 'options.limit' must be an integer >= 0.`, 'did not throw');
       });
 
       it(`'options.limit' is not a number`, () =>
       {
          // @ts-expect-error
-         expect(() => new TrieSearchQuery(ts, {limit: 'bad'})).to.throw(TypeError,
+         expect(() => new TrieSearchQuery(ts, { limit: 'bad' })).to.throw(TypeError,
           `TrieSearchQuery error: 'options.limit' must be an integer >= 0.`, 'did not throw');
       });
 
       it(`'options.limit' is less than '0'`, () =>
       {
-         expect(() => new TrieSearchQuery(ts, {limit: -1})).to.throw(TypeError,
+         expect(() => new TrieSearchQuery(ts, { limit: -1 })).to.throw(TypeError,
           `TrieSearchQuery error: 'options.limit' must be an integer >= 0.`, 'did not throw');
       });
    });

@@ -5,7 +5,7 @@
 
 import { TrieSearch }   from '../../src/trie';
 
-describe('TrieSearch - General tests', () =>
+describe('TrieSearch - General Tests', () =>
 {
    describe('new TrieSearch(keyFields) should work', () =>
    {

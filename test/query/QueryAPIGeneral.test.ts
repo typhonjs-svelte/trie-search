@@ -41,4 +41,71 @@ describe(`TrieSearchQuery - General Tests`, () =>
          assert.instanceOf(tsq.trieReducer, UnionReducer, 'not set');
       });
    });
+
+   describe('Invalid store updates - no errors', () =>
+   {
+      const ts = new TrieSearch();
+      const tsq = new TrieSearchQuery(ts);
+
+      it(`'limit' reset to undefined after bad data`, () =>
+      {
+         tsq.limit.set(10);
+
+         let i = 0;
+
+         // Should be updated by undefined via next statement.
+         // Counter takes into consideration initial subscription callback and set(false); next should be undefined.
+         const unsubscribe = tsq.limit.subscribe((value) =>
+         {
+            if (i++ > 1) { assert.isUndefined(value); }
+         });
+
+         // @ts-expect-error
+         tsq.limit.set(false);
+
+         unsubscribe();
+      });
+
+      it(`'limit' reset to undefined after bad number data`, () =>
+      {
+         tsq.limit.set(10);
+
+         let i = 0;
+
+         // Should be updated by undefined via next statement.
+         // Counter takes into consideration initial subscription callback and set(-1); next should be undefined.
+         const unsubscribe = tsq.limit.subscribe((value) =>
+         {
+            if (i++ > 1) { assert.isUndefined(value); }
+         });
+
+         tsq.limit.set(-1);
+
+         unsubscribe();
+      });
+
+      it(`'query' bad data`, () =>
+      {
+         let i = 0;
+
+         const unsubscribe = tsq.query.subscribe((value) =>
+         {
+            if (i++ > 1) { assert.isUndefined(value); }
+         });
+
+         // @ts-expect-error
+         tsq.query.set(false);
+
+         unsubscribe();
+      });
+
+      it(`'query' set after destroyed`, () =>
+      {
+         ts.destroy();
+
+         tsq.query.set('test');
+
+         assert.isTrue(tsq.isDestroyed, 'query not destroyed');
+      });
+   });
 });
