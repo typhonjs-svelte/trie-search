@@ -59,10 +59,20 @@ describe('TrieSearch - General tests', () =>
 
       it('empty search() has no effect', () =>
       {
-         expect(ts.size).to.equal(0);
-
          // @ts-expect-error
          expect(ts.search()).to.deep.equal([]);
+      });
+
+      it('search() limit / hit branches', () =>
+      {
+         const item1 = { key: 'test' };
+         const item2 = { key: 'test2' };
+
+         ts.add(item1);
+         ts.add(item2);
+
+         expect(ts.search('test', { limit: 0 })).to.deep.equal([]);
+         expect(ts.search('test test2', { limit: 2 })).to.deep.equal([item2]);
       });
    });
 
