@@ -12,23 +12,6 @@ describe(`TrieSearch - API Errors`, () =>
       });
    });
 
-   describe('#validateOptions - throws on invalid options', () =>
-   {
-      it('maxCacheSize invalid', () =>
-      {
-         // @ts-expect-error
-         expect(() => new TrieSearch('key', { maxCacheSize: false })).to.throw(TypeError,
-          `TrieSearch error: 'options.maxCacheSize' must be an integer >= 0.`, 'did not throw');
-      });
-
-      it('maxCacheSize invalid', () =>
-      {
-         // @ts-expect-error
-         expect(() => new TrieSearch('key', { tokenizer: false })).to.throw(TypeError,
-          `TrieSearch error: 'options.tokenizer' is not a function.`, 'did not throw');
-      });
-   });
-
    describe('destroy()', () =>
    {
       const ts = new TrieSearch('key');
@@ -49,5 +32,32 @@ describe(`TrieSearch - API Errors`, () =>
       it('map() throws error',
        () => expect(() => ts.map('key', { key: 'val' })).to.throw(Error,
         'TrieSearch error: This instance has been destroyed.', 'throws error'));
+   });
+
+   describe('search - throws on invalid limit', () =>
+   {
+      it('invalid limit option', () =>
+      {
+         // @ts-expect-error
+         expect(() => new TrieSearch().search('test', { limit: false })).to.throw(TypeError,
+          `TrieSearch.search error: 'limit' is not an integer >= 0.`, 'did not throw');
+      });
+   });
+
+   describe('#validateOptions - throws on invalid options', () =>
+   {
+      it('maxCacheSize invalid', () =>
+      {
+         // @ts-expect-error
+         expect(() => new TrieSearch('key', { maxCacheSize: false })).to.throw(TypeError,
+          `TrieSearch error: 'options.maxCacheSize' must be an integer >= 0.`, 'did not throw');
+      });
+
+      it('maxCacheSize invalid', () =>
+      {
+         // @ts-expect-error
+         expect(() => new TrieSearch('key', { tokenizer: false })).to.throw(TypeError,
+          `TrieSearch error: 'options.tokenizer' is not a function.`, 'did not throw');
+      });
    });
 });

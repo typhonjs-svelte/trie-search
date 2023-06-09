@@ -335,6 +335,11 @@ export class TrieSearch<T extends object>
    {
       if (phrases === void 0) { return list; }
 
+      if (limit !== void 0 && (!Number.isInteger(limit) || limit < 0))
+      {
+         throw new TypeError(`TrieSearch.search error: 'limit' is not an integer >= 0.`);
+      }
+
       let haKeyFields: Key | KeyFields = this.#keyFields;
 
       // Reset reducer and retrieve potentially more specific KeyFields.
@@ -583,7 +588,7 @@ export class TrieSearch<T extends object>
 
       function aggregate(node, ha)
       {
-         if (limit && ha.sizeFlat === limit) { return; }
+         if (limit !== void 0 && ha.sizeFlat >= limit) { return; }
 
          if (node.value && node.value.length)
          {
@@ -601,7 +606,7 @@ export class TrieSearch<T extends object>
 
          for (const k in node)
          {
-            if (limit && ha.sizeFlat === limit) { return; }
+            if (limit !== void 0 && ha.sizeFlat >= limit) { return; }
             if (k !== 'value') { aggregate(node[k], ha); }
          }
       }
