@@ -3,4 +3,5 @@
 coverage/
 html/
 dist/
+dist-trl/
 node_modules/
