@@ -1,6 +1,6 @@
 {
   "name": "@typhonjs-svelte/trie-search",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Provides a trie-search and hash array data structures w/ Svelte support.",
   "license": "MPL-2.0",
   "type": "module",
