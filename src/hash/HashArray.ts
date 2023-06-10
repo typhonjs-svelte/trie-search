@@ -3,7 +3,7 @@ import {
    isObject,
    klona }              from '#runtime/util/object';
 
-import { getKeyValue }  from './functions';
+import { getValueFromKey }  from './functions';
 
 import type {
    HashArrayOptions,
@@ -192,7 +192,7 @@ export class HashArray<T extends object>
    {
       const callback = typeof callbackOrIndex === 'function' ? callbackOrIndex : (item) =>
       {
-         const val = getKeyValue(item, callbackOrIndex);
+         const val = getValueFromKey(item, callbackOrIndex);
          return val !== void 0 && val !== false;
       };
 
@@ -238,7 +238,7 @@ export class HashArray<T extends object>
    {
       const items = this.getAll(key);
 
-      items.forEach((item) => callback(getKeyValue(item, index), item));
+      items.forEach((item) => callback(getValueFromKey(item, index), item));
 
       return this;
    }
@@ -303,7 +303,7 @@ export class HashArray<T extends object>
    {
       for (const keyField of this.#keyFields)
       {
-         if (this.has(getKeyValue(item, keyField))) { return true; }
+         if (this.has(getValueFromKey(item, keyField))) { return true; }
       }
 
       return false;
@@ -547,7 +547,7 @@ export class HashArray<T extends object>
       {
          for (const keyField of this.#keyFields)
          {
-            const key = getKeyValue(item, keyField);
+            const key = getValueFromKey(item, keyField);
 
             if (key && this.#map.get(key)?.includes?.(item) && target.#map.get(key)?.includes?.(item))
             {
@@ -573,7 +573,7 @@ export class HashArray<T extends object>
 
       for (const keyField of this.#keyFields)
       {
-         const key = getKeyValue(item, keyField);
+         const key = getValueFromKey(item, keyField);
 
          if (key)
          {
@@ -612,7 +612,7 @@ export class HashArray<T extends object>
    {
       for (const keyField of this.#keyFields)
       {
-         const key = getKeyValue(item, keyField);
+         const key = getValueFromKey(item, keyField);
 
          if (key)
          {

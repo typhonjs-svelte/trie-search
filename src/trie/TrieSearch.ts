@@ -6,7 +6,7 @@ import {
    klona }                       from '#runtime/util/object';
 
 import {
-   getKeyValue,
+   getValueFromKey,
    HashArray }                   from '#runtime/data/struct/hash/array';
 
 import type {
@@ -466,7 +466,7 @@ export class TrieSearch<T extends object>
 
       for (const key of this.#keyFields)
       {
-         let val = Array.isArray(key) ? getKeyValue(item, key) : item[key];
+         let val = Array.isArray(key) ? getValueFromKey(item, key) : item[key];
 
          if (!val) { continue; }
 

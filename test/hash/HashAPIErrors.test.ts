@@ -1,5 +1,5 @@
 import {
-   getKeyValue,
+   getValueFromKey,
    HashArray }    from '../../src/hash';
 
 describe('HashArray API Errors', () =>
@@ -34,8 +34,8 @@ describe('HashArray API Errors', () =>
       {
          it('object is not an object', () =>
          {
-            expect(() => getKeyValue(null, 'key')).to.throw(
-             `getKeyValue error: 'item' must be an object.`);
+            expect(() => getValueFromKey(null, 'key')).to.throw(
+             `getValueFromKey error: 'item' must be an object.`);
          })
       });
    });

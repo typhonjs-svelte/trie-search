@@ -1,4 +1,4 @@
-import { getKeyValue }           from '#runtime/data/struct/hash/array';
+import { getValueFromKey }           from '#runtime/data/struct/hash/array';
 
 import type {
    Key,
@@ -79,13 +79,13 @@ export class UnionReducer<T extends object> implements ITrieSearchReducer<T>
       // Add accumulator keys to Set.
       for (let i = this.#accumulator.length; --i >= 0;)
       {
-         this.#set.add(getKeyValue(this.#accumulator[i], this.#indexField))
+         this.#set.add(getValueFromKey(this.#accumulator[i], this.#indexField))
       }
 
       // Iterate through current matches and only add to results if the index field is in accumulated Set.
       for (let i = 0; i < matches.length; i++)
       {
-         if (this.#set.has(getKeyValue(matches[i], this.#indexField))) { results.push(matches[i]); }
+         if (this.#set.has(getValueFromKey(matches[i], this.#indexField))) { results.push(matches[i]); }
       }
 
       this.#accumulator = results;

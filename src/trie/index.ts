@@ -1,4 +1,4 @@
-export { getKeyValue } from '#runtime/data/struct/hash/array';
+export { getValueFromKey } from '#runtime/data/struct/hash/array';
 
 export * from './TrieSearch';
 export * from './reducers';

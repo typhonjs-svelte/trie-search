@@ -3,7 +3,7 @@ import { isObject }  from '#runtime/util/object';
 import type { Key }  from './types';
 
 /**
- * Returns the value for Key in the given item / object.
+ * Returns the value for a Key in the given item / object.
  *
  * @param {object}   item - The target item or partial item.
  *
@@ -11,9 +11,9 @@ import type { Key }  from './types';
  *
  * @returns {any} Value for key in item.
  */
-export function getKeyValue(item: object, key: Key): any
+export function getValueFromKey(item: object, key: Key): any
 {
-   if (!isObject(item)) { throw new Error(`getKeyValue error: 'item' must be an object.`); }
+   if (!isObject(item)) { throw new Error(`getValueFromKey error: 'item' must be an object.`); }
 
    if (typeof key === 'string') { return item[key]; }
 

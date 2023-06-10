@@ -1,5 +1,5 @@
 import {
-   getKeyValue,
+   getValueFromKey,
    HashArray }    from '../../src/hash';
 
 type Item = { key: string };
@@ -1111,35 +1111,35 @@ describe('HashArray API Tests', () =>
 
             it(`Should retrieve 'deeper'`, () =>
             {
-               assert.equal(getKeyValue(data, ['key', 'deep']), deeper);
+               assert.equal(getValueFromKey(data, ['key', 'deep']), deeper);
             });
 
             it('Should return undefined for no continuation in keys', () =>
             {
-               assert.isUndefined(getKeyValue(data, ['key', 'deep', 'deeper', 'foo', 'bar']));
+               assert.isUndefined(getValueFromKey(data, ['key', 'deep', 'deeper', 'foo', 'bar']));
             });
 
             it('Should return undefined for no keys', () =>
             {
-               assert.isUndefined(getKeyValue(data, void 0));
+               assert.isUndefined(getValueFromKey(data, void 0));
             });
 
             it('Should return undefined for no keys', () =>
             {
-               assert.isUndefined(getKeyValue(data, []));
+               assert.isUndefined(getValueFromKey(data, []));
             });
 
             it('Should return undefined for bad key', () =>
             {
-               assert.isUndefined(getKeyValue(data, ['key', null]));
+               assert.isUndefined(getValueFromKey(data, ['key', null]));
             });
 
             it('Should return undefined for bad path', () =>
             {
-               assert.isUndefined(getKeyValue(data, 'bogus'));
-               assert.isUndefined(getKeyValue(data, ['bogus']));
-               assert.isUndefined(getKeyValue(data, ['key', 'bogus']));
-               assert.isUndefined(getKeyValue(data, ['key', 'deep', 'bogus']));
+               assert.isUndefined(getValueFromKey(data, 'bogus'));
+               assert.isUndefined(getValueFromKey(data, ['bogus']));
+               assert.isUndefined(getValueFromKey(data, ['key', 'bogus']));
+               assert.isUndefined(getValueFromKey(data, ['key', 'deep', 'bogus']));
             });
          });
       });

@@ -1,4 +1,4 @@
-import { getKeyValue }  from './functions';
+import { getValueFromKey }  from './functions';
 import { HashArray }    from './HashArray';
 
 import type { Key }     from './types';
@@ -42,7 +42,7 @@ export class HashArrayUtil
 
       source.forEachDeep(key, index, (value, item) =>
       {
-         if (weightKey !== void 0) { value *= (getKeyValue(item, weightKey) / weightsTotal); }
+         if (weightKey !== void 0) { value *= (getValueFromKey(item, weightKey) / weightsTotal); }
 
          ret += value;
          tot++;
@@ -72,7 +72,7 @@ export class HashArrayUtil
 
       source.forEachDeep(key, index, (value, item) =>
       {
-         if (weightKey !== void 0) { value *= getKeyValue(item, weightKey); }
+         if (weightKey !== void 0) { value *= getValueFromKey(item, weightKey); }
 
          ret += value;
       });
