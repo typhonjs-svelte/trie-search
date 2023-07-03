@@ -1,7 +1,7 @@
 import fs                     from 'node:fs';
 import { bench }              from 'vitest';
 
-import { graphemeIterator }   from '#runtime/data/format/unicode';
+import { graphemeIterator }   from '@typhonjs-svelte/unicode';
 
 import { TrieSearch }         from '../../src/trie';
 
@@ -22,12 +22,12 @@ const jsonSentenceData = jsonSentenceRaw.sentences.map((sentence, i) => ({ k: se
 // Test Options ------------------------------------------------------------------------------------------------------
 
 // Test Categories
-const loading = false;        // Loading data tests.
+const loading = true;        // Loading data tests.
 const stress = true;          // Stress testing.
 
 const trieNew = true;         // This package TrieSearch
-const trieNewUnicode = false;  // This package TrieSearch (Unicode tokenizer)
-const trieOrig = false;       // Original trie-search package.
+const trieNewUnicode = true;  // This package TrieSearch (Unicode tokenizer)
+const trieOrig = true;       // Original trie-search package.
 
 // Test types
 const enable1 = true;        // Enable1 tests.
