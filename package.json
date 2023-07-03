@@ -12,9 +12,8 @@
   "imports": {
     "#runtime/data/struct/hash/array": "./src/hash/index.ts",
     "#runtime/data/struct/search/trie": "./src/trie/index.ts",
-
     "#runtime/data/struct/cache/quick-lru": "quick-lru",
-    "#runtime/data/struct/store/reducer": "@typhonjs-svelte/dynamic-reducer",
+    "#runtime/svelte/store/reducer": "@typhonjs-svelte/dynamic-reducer",
     "#runtime/util/object": "@typhonjs-utils/object",
     "#svelte/store": "svelte/store"
   },
@@ -34,18 +33,18 @@
   },
   "devDependencies": {
     "@rollup/plugin-replace": "^5.0.2",
-    "@rollup/plugin-typescript": "^11.1.1",
+    "@rollup/plugin-typescript": "^11.1.2",
     "@typhonjs-svelte/unicode": "^0.0.0",
-    "@vitest/coverage-c8": "^0.31.1",
-    "@vitest/ui": "^0.31.1",
-    "rollup": "^3.23.0",
+    "@vitest/coverage-c8": "0.31.1",
+    "@vitest/ui": "0.31.1",
+    "rollup": "^3.26.0",
     "rollup-plugin-dts": "^5.3.0",
-    "trie-search": "^1.4.1",
-    "tslib": "^2.5.2",
-    "typescript" : "^5.1.3",
-    "vitest": "^0.31.1"
+    "trie-search": "^1.4.2",
+    "tslib": "^2.6.0",
+    "typescript" : "^5.1.6",
+    "vitest": "0.31.1"
   },
-  "peerDependencies" : {
+  "peerDependencies": {
     "@typhonjs-svelte/dynamic-reducer" : ">=0.0.8",
     "@typhonjs-utils/object" : ">=0.0.16",
     "svelte": ">=3.59.0",
@@ -63,6 +62,7 @@
     "test": "vitest --coverage",
     "test-ui": "vitest --ui --coverage",
     "coverage": "vitest run --coverage",
-    "benchmark": "node --expose-gc ./node_modules/vitest/vitest.mjs bench"
+    "benchmark": "node --expose-gc ./node_modules/vitest/vitest.mjs bench",
+    "benchmark2": "vitest bench"
   }
 }
