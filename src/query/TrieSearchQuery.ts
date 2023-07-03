@@ -1,7 +1,7 @@
 import { writable }           from '#svelte/store';
 
 import { TrieSearch }         from '#runtime/data/struct/search/trie';
-import { DynArrayReducer }    from '#runtime/data/struct/store/reducer';
+import { DynArrayReducer }    from '#runtime/svelte/store/reducer';
 
 import {
    isIterable,
