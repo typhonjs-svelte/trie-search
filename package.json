@@ -1,6 +1,6 @@
 {
   "name": "@typhonjs-svelte/trie-search",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Provides a trie-search and hash array data structures w/ Svelte support.",
   "license": "MPL-2.0",
   "type": "module",
@@ -19,15 +19,15 @@
   },
   "exports": {
     ".": {
-      "types": "./dist/trie/index.d.mts",
+      "types": "./dist/trie/index.d.ts",
       "import": "./dist/trie/index.js"
     },
     "./hash": {
-      "types": "./dist/hash/index.d.mts",
+      "types": "./dist/hash/index.d.ts",
       "import": "./dist/hash/index.js"
     },
     "./query": {
-      "types": "./dist/query/index.d.mts",
+      "types": "./dist/query/index.d.ts",
       "import": "./dist/query/index.js"
     }
   },
