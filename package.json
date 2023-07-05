@@ -35,14 +35,14 @@
     "@rollup/plugin-replace": "^5.0.2",
     "@rollup/plugin-typescript": "^11.1.2",
     "@typhonjs-svelte/unicode": "^0.0.0",
-    "@vitest/coverage-c8": "0.31.1",
-    "@vitest/ui": "0.31.1",
+    "@vitest/coverage-v8": "^0.32.4",
+    "@vitest/ui": "^0.32.4",
     "rollup": "^3.26.0",
     "rollup-plugin-dts": "^5.3.0",
     "trie-search": "^1.4.2",
     "tslib": "^2.6.0",
     "typescript" : "^5.1.6",
-    "vitest": "0.31.1"
+    "vitest": "^0.32.4"
   },
   "peerDependencies": {
     "@typhonjs-svelte/dynamic-reducer" : ">=0.0.8",
