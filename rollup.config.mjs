@@ -8,10 +8,10 @@ const sourcemap = true;
 /**
  * @type {import('@rollup/plugin-replace').RollupReplaceOptions}
  */
-const replaceOptions = {
+const replaceOptionsMain = {
    values: {
       // Local substitutions.
-      "#runtime/data/struct/hash/array": "@typhonjs-svelte/trie-search/hash",
+      '#runtime/data/struct/hash/array': '@typhonjs-svelte/trie-search/hash',
       '#runtime/data/struct/search/trie': '@typhonjs-svelte/trie-search',
 
       // Runtime / Svelte substitutions.
@@ -19,6 +19,18 @@ const replaceOptions = {
       '#runtime/data/struct/store/reducer': '@typhonjs-svelte/dynamic-reducer',
       '#runtime/util/object': '@typhonjs-utils/object',
       '#svelte/store': 'svelte/store'
+   },
+   preventAssignment: true,
+   delimiters: ['', '']
+};
+
+/**
+ * @type {import('@rollup/plugin-replace').RollupReplaceOptions}
+ */
+const replaceOptionsTRL = {
+   values: {
+      // QuickLRU is a named export in TRL.
+      'import QuickLRU': 'import { QuickLRU }',
    },
    preventAssignment: true,
    delimiters: ['', '']
@@ -44,7 +56,7 @@ export default () =>
             sourcemap,
          }],
          plugins: [
-            replace(replaceOptions),
+            replace(replaceOptionsMain),
             // resolve({ browser: true }),
             typescript({ include: ['src/hash/**/*'] })
          ]
@@ -59,7 +71,7 @@ export default () =>
             sourcemap,
          }],
          plugins: [
-            replace(replaceOptions),
+            replace(replaceOptionsMain),
             // resolve({ browser: true }),
             typescript({ include: ['src/query/**/*'] })
          ]
@@ -74,7 +86,7 @@ export default () =>
             sourcemap,
          }],
          plugins: [
-            replace(replaceOptions),
+            replace(replaceOptionsMain),
             // resolve({ browser: true }),
             typescript({ include: ['src/trie/**/*'] })
          ]
@@ -91,7 +103,7 @@ export default () =>
             sourcemap: false
          }],
          plugins: [
-            replace(replaceOptions),
+            replace(replaceOptionsMain),
             dts()
          ]
       },
@@ -105,7 +117,7 @@ export default () =>
             sourcemap: false
          }],
          plugins: [
-            replace(replaceOptions),
+            replace(replaceOptionsMain),
             dts()
          ]
       },
@@ -119,7 +131,7 @@ export default () =>
             sourcemap: false
          }],
          plugins: [
-            replace(replaceOptions),
+            replace(replaceOptionsMain),
             dts()
          ]
       },
@@ -162,6 +174,7 @@ export default () =>
             sourcemap,
          }],
          plugins: [
+            replace(replaceOptionsTRL),
             typescript({ include: ['src/trie/**/*'] })
          ]
       },
@@ -203,6 +216,7 @@ export default () =>
             sourcemap: false
          }],
          plugins: [
+            replace(replaceOptionsTRL),
             dts()
          ]
       }
