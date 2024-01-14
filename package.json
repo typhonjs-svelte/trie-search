@@ -67,6 +67,9 @@
       "NPM": "https://www.npmjs.com/package/@typhonjs-svelte/trie-search"
     }
   },
+  "bugs": "https://github.com/typhonjs-svelte/trie-search/issues",
+  "homepage": "https://github.com/typhonjs-svelte/trie-search#readme",
+  "repository": "github:typhonjs-svelte/trie-search",
   "apidocs": "https://typhonjs-svelte.github.io/trie-search/",
   "scripts": {
     "build": "rollup -c",
@@ -78,4 +81,4 @@
     "coverage": "vitest run --coverage",
     "benchmark": "node --expose-gc ./node_modules/vitest/vitest.mjs bench"
   }
-} 
+}
