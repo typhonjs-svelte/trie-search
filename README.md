@@ -9,7 +9,7 @@
 [![Discord](https://img.shields.io/discord/737953117999726592?label=TyphonJS%20Discord)](https://typhonjs.io/discord/)
 [![Twitch](https://img.shields.io/twitch/status/typhonrt?style=social)](https://www.twitch.tv/typhonrt)
 
-Provides a modern ESM package & fork of [trie-search](https://github.com/joshjung/trie-search/tree/master) w/ reactive 
-querying / filtering / sorting and Svelte store support.
+Provides a modern ESM package & fork of [trie-search](https://github.com/joshjung/trie-search/tree/master) w/ reactive querying / filtering / sorting and Svelte store 
+support. The API is clarified and there is a ~200% performance improvement over the original implementing package.
 
 [API documentation](https://typhonjs-svelte.github.io/trie-search/)
