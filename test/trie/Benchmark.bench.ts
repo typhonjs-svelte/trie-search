@@ -1,7 +1,7 @@
 import fs                     from 'node:fs';
 import { bench }              from 'vitest';
 
-import { graphemeIterator }   from '@typhonjs-svelte/unicode';
+import { graphemeIterator }   from '@typhonjs-utils/unicode';
 
 import { TrieSearch }         from '../../src/trie';
 

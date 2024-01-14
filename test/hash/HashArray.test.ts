@@ -18,12 +18,13 @@ describe('HashArray API Tests', () =>
          {
             const ha = new HashArray(['key']);
 
-            it('Should have a map with no keys.', () => assert.equal([...ha.keys()].length, 0));
+            // Should have a map with no keys.
+            assert.equal([...ha.keys()].length, 0);
 
             const ha2 = new HashArray('key');
 
-            it('Should work with a single key not wrapped in an array.',
-             () => assert.deepEqual(ha2.keyFields, ['key']));
+            // Should work with a single key not wrapped in an array.
+            assert.deepEqual(ha2.keyFields, ['key']);
          });
       });
 

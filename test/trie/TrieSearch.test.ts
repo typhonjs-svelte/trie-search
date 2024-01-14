@@ -1,4 +1,4 @@
-import { graphemeIterator }   from '@typhonjs-svelte/unicode';
+import { graphemeIterator }   from '@typhonjs-utils/unicode';
 
 import {
    TrieSearch,
