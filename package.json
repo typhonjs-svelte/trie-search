@@ -1,6 +1,6 @@
 {
   "name": "@typhonjs-svelte/trie-search",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Provides a trie-search and hash array data structures w/ Svelte support.",
   "license": "MPL-2.0",
   "type": "module",
@@ -20,34 +20,39 @@
   "exports": {
     ".": {
       "types": "./dist/trie/index.d.ts",
+      "typedoc": "./src/trie/index.ts",
       "import": "./dist/trie/index.js"
     },
     "./hash": {
       "types": "./dist/hash/index.d.ts",
+      "typedoc": "./src/hash/index.ts",
       "import": "./dist/hash/index.js"
     },
     "./query": {
       "types": "./dist/query/index.d.ts",
+      "typedoc": "./src/query/index.ts",
       "import": "./dist/query/index.js"
     }
   },
   "devDependencies": {
-    "@rollup/plugin-replace": "^5.0.2",
-    "@rollup/plugin-typescript": "^11.1.2",
-    "@typhonjs-svelte/unicode": "^0.0.0",
-    "@vitest/coverage-v8": "^0.32.4",
-    "@vitest/ui": "^0.32.4",
-    "rollup": "^3.26.0",
-    "rollup-plugin-dts": "^5.3.0",
-    "trie-search": "^1.4.2",
-    "tslib": "^2.6.0",
-    "typescript" : "^5.1.6",
-    "vitest": "^0.32.4"
+    "@rollup/plugin-replace": "^5.0.5",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@typhonjs-typedoc/typedoc-pkg": "^0.0.2",
+    "@typhonjs-utils/unicode": "^0.1.0",
+    "@types/node": "^20.11.0",
+    "@vitest/coverage-v8": "^1.1.3",
+    "@vitest/ui": "^1.1.3",
+    "rollup": "^4.9.5",
+    "rollup-plugin-dts": "^6.1.0",
+    "trie-search": "^2.0.0",
+    "tslib": "^2.6.2",
+    "typescript" : "^5.3.3",
+    "vitest": "^1.2.0"
   },
   "peerDependencies": {
-    "@typhonjs-svelte/dynamic-reducer" : ">=0.0.8",
-    "@typhonjs-utils/object" : ">=0.0.16",
-    "svelte": ">=3.59.0",
+    "@typhonjs-svelte/dynamic-reducer" : ">=0.1.0",
+    "@typhonjs-utils/object" : ">=0.1.0",
+    "svelte": ">=4.0.0",
     "quick-lru": ">=6.0.0"
   },
   "files": [
@@ -55,8 +60,17 @@
     "/dist-trl"
   ],
   "browserslist": [">5%", "not IE 11"],
+  "typedocOptions": {
+    "dmtLinksService": {
+      "Discord": "https://typhonjs.io/discord/",
+      "GitHub": "https://github.com/typhonjs-svelte/trie-search",
+      "NPM": "https://www.npmjs.com/package/@typhonjs-svelte/trie-search"
+    }
+  },
+  "apidocs": "https://typhonjs-svelte.github.io/trie-search/",
   "scripts": {
     "build": "rollup -c",
+    "docs": "typedoc-pkg --api-link esm --export typedoc --loglevel verbose",
     "eslint": "eslint .",
     "prepublishOnly": "npm run build && npm run test",
     "test": "vitest --coverage",
