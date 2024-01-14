@@ -1,4 +1,4 @@
-import { writable }           from '#svelte/store';
+import { writable }           from 'svelte/store';
 
 import { TrieSearch }         from '#runtime/data/struct/search/trie';
 import { DynArrayReducer }    from '#runtime/svelte/store/reducer';
@@ -9,7 +9,7 @@ import {
 
 import type {
    Unsubscriber,
-   Writable }                 from '#svelte/store';
+   Writable }                 from 'svelte/store';
 
 import type { ITrieSearchReducer }     from '#runtime/data/struct/search/trie';
 
