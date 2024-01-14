@@ -16,9 +16,8 @@ const replaceOptionsMain = {
 
       // Runtime / Svelte substitutions.
       '#runtime/data/struct/cache/quick-lru': 'quick-lru',
-      '#runtime/data/struct/store/reducer': '@typhonjs-svelte/dynamic-reducer',
-      '#runtime/util/object': '@typhonjs-utils/object',
-      '#svelte/store': 'svelte/store'
+      '#runtime/svelte/store/reducer': '@typhonjs-svelte/dynamic-reducer',
+      '#runtime/util/object': '@typhonjs-utils/object'
    },
    preventAssignment: true,
    delimiters: ['', '']
@@ -31,6 +30,9 @@ const replaceOptionsTRL = {
    values: {
       // QuickLRU is a named export in TRL.
       'import QuickLRU': 'import { QuickLRU }',
+
+      // Svelte is referenced by `imports` in TRL.
+      "'svelte/store'": "'#svelte/store'"
    },
    preventAssignment: true,
    delimiters: ['', '']
@@ -161,6 +163,7 @@ export default () =>
             sourcemap,
          }],
          plugins: [
+            replace(replaceOptionsTRL),
             typescript({ include: ['src/query/**/*'] })
          ]
       },
@@ -203,6 +206,7 @@ export default () =>
             sourcemap: false
          }],
          plugins: [
+            replace(replaceOptionsTRL),
             dts()
          ]
       },
