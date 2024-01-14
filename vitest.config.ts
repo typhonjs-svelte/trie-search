@@ -7,6 +7,7 @@ export default defineConfig({
       exclude: [...configDefaults.exclude],
       include: ['./test/**/*.test.ts'],
       coverage: {
+         include: ['src/**'],
          exclude: ['test/**'],
          provider: 'v8',
          reporter: ['text', 'json', 'html']
