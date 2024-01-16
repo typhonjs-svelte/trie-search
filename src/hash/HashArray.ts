@@ -185,12 +185,12 @@ export class HashArray<T extends object>
     *
     * @param {Key}   key - The Key to retrieve item(s) to iterate.
     *
-    * @param {Key | ((T) => boolean)}  callbackOrIndex - A Key to lookup for filter inclusion or a callback function
-    *        returning the filter result for the item.
+    * @param {Key | ((item: T) => boolean)}  callbackOrIndex - A Key to lookup for filter inclusion or a callback
+    *        function returning the filter result for the item.
     */
-   filter(key: Key, callbackOrIndex: Key | ((T) => boolean)): HashArray<T>
+   filter(key: Key, callbackOrIndex: Key | ((item: T) => boolean)): HashArray<T>
    {
-      const callback = typeof callbackOrIndex === 'function' ? callbackOrIndex : (item) =>
+      const callback = typeof callbackOrIndex === 'function' ? callbackOrIndex : (item: T) =>
       {
          const val = getValueFromKey(item, callbackOrIndex);
          return val !== void 0 && val !== false;
@@ -208,11 +208,11 @@ export class HashArray<T extends object>
     *
     * @param {Key}   key - The Key to retrieve items to iterate.
     *
-    * @param {(T) => void)}   callback - A callback invoked for each item.
+    * @param {(item: T) => void}   callback - A callback invoked for each item.
     *
     * @returns {HashArray<T>} This instance.
     */
-   forEach(key: Key, callback: (T) => void): this
+   forEach(key: Key, callback: (item: T) => void): this
    {
       const items = this.getAll(key);
 
@@ -229,7 +229,7 @@ export class HashArray<T extends object>
     *
     * @param {Key}   index - A specific Key in each item to lookup.
     *
-    * @param {(value: any, item: T) => void)}   callback - A callback invoked for each item with value of `index`
+    * @param {(value: any, item: T) => void}   callback - A callback invoked for each item with value of `index`
     *        and item.
     *
     * @returns {HashArray<T>} This instance.
@@ -347,8 +347,6 @@ export class HashArray<T extends object>
     */
    remove(...items: T[]): this
    {
-      let removed = false;
-
       for (const item of items)
       {
          // Remove the item from the map.
@@ -356,11 +354,7 @@ export class HashArray<T extends object>
 
          // Remove the item from the list.
          const index = this.#list.indexOf(item);
-         if (index !== -1)
-         {
-            this.#list.splice(index, 1);
-            removed = true;
-         }
+         if (index !== -1) { this.#list.splice(index, 1); }
       }
 
       return this;
@@ -375,8 +369,6 @@ export class HashArray<T extends object>
     */
    removeByKey(...keys: string[]): this
    {
-      let removed = false;
-
       for (const key of keys)
       {
          // Retrieve a shallow copy of the items associated with the key.
@@ -384,8 +376,6 @@ export class HashArray<T extends object>
 
          if (items)
          {
-            removed = true;
-
             for (const item of items)
             {
                // Remove the item from the associated keys in the map.
@@ -517,7 +507,7 @@ export class HashArray<T extends object>
     *
     * @param {number}   index - The index to retrieve.
     */
-   getAt(index): T
+   getAt(index: number): T
    {
       return this.#list[index];
    }

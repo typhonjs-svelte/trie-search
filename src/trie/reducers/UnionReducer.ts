@@ -2,6 +2,7 @@ import { getValueFromKey }           from '#runtime/data/struct/hash/array';
 
 import type {
    Key,
+   KeyFields,
    ITrieSearchReducer,
    TrieSearchReducerData,
    TrieSearchReducerResetData }  from '../types';
@@ -42,12 +43,12 @@ export class UnionReducer<T extends object> implements ITrieSearchReducer<T>
    /**
     * @returns {Key | KeyFields | undefined} Returns the index field key.
     */
-   get keyFields() { return this.#indexField; }
+   get keyFields(): Key | KeyFields | undefined { return this.#indexField; }
 
    /**
     * @returns {T[]} Returns the union of all matches.
     */
-   get matches()
+   get matches(): T[]
    {
       // Push results into the main list.
       const matches = this.#list;
@@ -63,10 +64,12 @@ export class UnionReducer<T extends object> implements ITrieSearchReducer<T>
    /**
     * Accumulates and reduces each batch of matches for one or more phrases.
     *
-    * @param {T[]}   matches - Matches of current iteration / batch.
+    * @param {TrieSearchReducerData<T>}   data - Matches of current iteration / batch.
     */
-   reduce({ matches }: TrieSearchReducerData<T>)
+   reduce(data: TrieSearchReducerData<T>)
    {
+      const matches = data.matches;
+
       // In the first iteration simply set matches to the accumulator returning immediately.
       if (this.#accumulator === void 0)
       {

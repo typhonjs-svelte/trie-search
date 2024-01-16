@@ -331,7 +331,7 @@ export class TrieSearch<T extends object>
     * @returns {T[]} Found matches.
     */
    search(phrases: string | Iterable<string>, { reducer, limit, list = [] }:
-    { reducer?: ITrieSearchReducer<T>, limit?: number, list?: T[] } = {})
+    { reducer?: ITrieSearchReducer<T>, limit?: number, list?: T[] } = {}): T[]
    {
       if (phrases === void 0) { return list; }
 
@@ -356,7 +356,7 @@ export class TrieSearch<T extends object>
 
          let matchesAndWords: { matches: T[], words: string[] };
 
-         let cachedMatches;
+         let cachedMatches: { matches: T[], words: string[] };
 
          if (this.#cachePhrase && (cachedMatches = this.#cachePhrase.get(
           TrieSearch.#getCacheKey(ignoreCasePhrase, limit))))
@@ -389,7 +389,7 @@ export class TrieSearch<T extends object>
 
             let matchesAndWords: { matches: T[], words: string[] };
 
-            let cachedMatches;
+            let cachedMatches: { matches: T[], words: string[] };
 
             if (this.#cachePhrase && (cachedMatches = this.#cachePhrase.get(
              TrieSearch.#getCacheKey(ignoreCasePhrase, limit))))
@@ -430,7 +430,7 @@ export class TrieSearch<T extends object>
     *
     * @returns {() => void} Unsubscribe function.
     */
-   subscribe(handler: TrieSearchSubscribeHandler<T>)
+   subscribe(handler: TrieSearchSubscribeHandler<T>): () => void
    {
       this.#subscribers.push(handler);
 
@@ -494,7 +494,7 @@ export class TrieSearch<T extends object>
     * @returns {IterableIterator<string>}  Always returns an array even if no matches.
     * @yields {string}
     */
-   static *#expandString(value: string, options): IterableIterator<string>
+   static *#expandString(value: string, options: TrieSearchOptions): IterableIterator<string>
    {
       yield value;
 
@@ -503,7 +503,7 @@ export class TrieSearch<T extends object>
          for (let i = 0; i < options.expandRegexes.length; i++)
          {
             const er = options.expandRegexes[i];
-            let match;
+            let match: RegExpExecArray;
 
             while ((match = er.regex.exec(value)) !== null)
             {
@@ -520,7 +520,7 @@ export class TrieSearch<T extends object>
     *
     * @param {string}   key - A key to find in trie data.
     */
-   #findNode(key)
+   #findNode(key: string)
    {
       if (this.#cacheWord?.has(key)) { return this.#cacheWord.get(key); }
 
@@ -586,7 +586,7 @@ export class TrieSearch<T extends object>
 
       return { matches, words };
 
-      function aggregate(node, ha)
+      function aggregate(node: TrieNode<T>, ha: HashArray<T>)
       {
          if (limit !== void 0 && ha.sizeFlat >= limit) { return; }
 
@@ -623,7 +623,7 @@ export class TrieSearch<T extends object>
     * @returns {IterableIterator<string>} A generator that yields each character or prefix from the key as a token.
     * @yields {string}
     */
-   *#keyTokenizer(key): IterableIterator<string>
+   *#keyTokenizer(key: string): IterableIterator<string>
    {
       if (this.#options.tokenizer)
       {
@@ -679,7 +679,7 @@ export class TrieSearch<T extends object>
     *
     * @returns {string} The target string w/ replacement.
     */
-   static #replaceStringAt(target: string, index: number, replacement: string)
+   static #replaceStringAt(target: string, index: number, replacement: string): string
    {
       return target.substring(0, index) + replacement + target.substring(index + replacement.length);
    }
@@ -689,7 +689,7 @@ export class TrieSearch<T extends object>
     *
     * @param {TrieSearchOptions} options - Options to validate.
     */
-   static #validateOptions(options)
+   static #validateOptions(options: TrieSearchOptions)
    {
       if (options.maxCacheSize !== void 0 && (!Number.isInteger(options.maxCacheSize) || options.maxCacheSize < 0))
       {
