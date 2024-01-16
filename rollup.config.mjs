@@ -1,3 +1,4 @@
+import resolve       from '@rollup/plugin-node-resolve';
 import replace       from '@rollup/plugin-replace';
 import typescript    from '@rollup/plugin-typescript';
 import dts           from 'rollup-plugin-dts';
@@ -38,7 +39,7 @@ const replaceOptionsTRL = {
    delimiters: ['', '']
 };
 
-const externalMain = [/@typhonjs-svelte\/trie-search\/*/g];
+const externalMain = [/@typhonjs*/g];
 const externalTRL = [/#runtime\/*/g];
 
 /**
@@ -74,7 +75,7 @@ export default () =>
          }],
          plugins: [
             replace(replaceOptionsMain),
-            // resolve({ browser: true }),
+            resolve({ browser: true }),                  // Resolving for svelte/store -> writable.
             typescript({ include: ['src/query/**/*'] })
          ]
       },
