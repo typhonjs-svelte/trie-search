@@ -3,7 +3,7 @@ import { getValueFromKey }           from '#runtime/data/struct/hash/array';
 import type {
    Key,
    KeyFields,
-   ITrieSearchReducer,
+   TrieSearchReducer,
    TrieSearchReducerData,
    TrieSearchReducerResetData }  from '../types';
 
@@ -13,7 +13,7 @@ import type {
  *
  * @template T
  */
-export class UnionReducer<T extends object> implements ITrieSearchReducer<T>
+export class UnionReducer<T extends object> implements TrieSearchReducer<T>
 {
    /**
     * Provides a lookup key for unique values in items being reduced.

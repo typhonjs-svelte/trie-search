@@ -10,7 +10,7 @@ import {
    HashArray }                   from '#runtime/data/struct/hash/array';
 
 import type {
-   ITrieSearchReducer,
+   TrieSearchReducer,
    Key,
    KeyFields,
    TrieNode,
@@ -322,7 +322,7 @@ export class TrieSearch<T extends object>
     *
     * @param {object}   [options] - Search Options.
     *
-    * @param {ITrieSearchReducer<T>}  [options.reducer] - A trie reducer instance to apply to this search.
+    * @param {TrieSearchReducer<T>}  [options.reducer] - A trie reducer instance to apply to this search.
     *
     * @param {number}   [options.limit] - The limit for search results returned.
     *
@@ -331,7 +331,7 @@ export class TrieSearch<T extends object>
     * @returns {T[]} Found matches.
     */
    search(phrases: string | Iterable<string>, { reducer, limit, list = [] }:
-    { reducer?: ITrieSearchReducer<T>, limit?: number, list?: T[] } = {}): T[]
+    { reducer?: TrieSearchReducer<T>, limit?: number, list?: T[] } = {}): T[]
    {
       if (phrases === void 0) { return list; }
 

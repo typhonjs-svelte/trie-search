@@ -9,7 +9,7 @@ import type {
  *
  * @template T
  */
-export interface ITrieSearchReducer<T extends object>
+export interface TrieSearchReducer<T extends object>
 {
    /**
     * @return {Key | KeyFields} Any associated key fields to limit match intersection / HashArray in

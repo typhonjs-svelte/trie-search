@@ -11,7 +11,7 @@ import type {
    Unsubscriber,
    Writable }                 from 'svelte/store';
 
-import type { ITrieSearchReducer }     from '#runtime/data/struct/search/trie';
+import type { TrieSearchReducer }      from '#runtime/data/struct/search/trie';
 
 import type { TrieSearchQueryOptions } from './types';
 
@@ -57,7 +57,7 @@ export class TrieSearchQuery<T extends object> extends DynArrayReducer<T>
    /**
     * The TrieSearch specific reducer instance.
     */
-   #trieReducer: ITrieSearchReducer<T> | undefined;
+   #trieReducer: TrieSearchReducer<T> | undefined;
 
    /**
     * Holds a weak reference to the associated TrieSearch instance.
@@ -129,9 +129,9 @@ export class TrieSearchQuery<T extends object> extends DynArrayReducer<T>
    get isDestroyed(): boolean { return this.#isDestroyed; }
 
    /**
-    * @returns {ITrieSearchReducer<T>} Any associated TrieSearch reducer function.
+    * @returns {TrieSearchReducer<T>} Any associated TrieSearch reducer function.
     */
-   get trieReducer(): ITrieSearchReducer<T> { return this.#trieReducer; }
+   get trieReducer(): TrieSearchReducer<T> { return this.#trieReducer; }
 
    /**
     * @returns {TrieSearch<T>} The associated TrieSearch instance; can be undefined.
@@ -144,9 +144,9 @@ export class TrieSearchQuery<T extends object> extends DynArrayReducer<T>
    get query(): Writable<string | Iterable<string> | undefined> { return this.#storeQuery; }
 
    /**
-    * @param {ITrieSearchReducer<T> | undefined}  trieReducer - A new trie reducer function.
+    * @param {TrieSearchReducer<T> | undefined}  trieReducer - A new trie reducer function.
     */
-   set trieReducer(trieReducer: ITrieSearchReducer<T> | undefined)
+   set trieReducer(trieReducer: TrieSearchReducer<T> | undefined)
    {
       if (trieReducer !== void 0 && typeof trieReducer?.reduce !== 'function')
       {
