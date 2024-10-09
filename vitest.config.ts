@@ -12,6 +12,11 @@ export default defineConfig({
          provider: 'v8',
          reporter: ['text', 'json', 'html']
       },
+      poolOptions: {
+         forks: {
+            execArgv: ['--expose-gc'],
+         },
+      },
       reporters: ['default', 'html'],
       globals: true
    }
