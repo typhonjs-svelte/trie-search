@@ -1,6 +1,6 @@
 {
   "name": "@typhonjs-svelte/trie-search",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Provides a trie-search and hash array data structures w/ Svelte support.",
   "license": "MPL-2.0",
   "type": "module",
@@ -37,24 +37,24 @@
   "dependencies": {
     "@typhonjs-svelte/dynamic-reducer" : ">=0.1.0",
     "@typhonjs-utils/object" : ">=0.1.0",
-    "quick-lru": "^6"
+    "quick-lru": "^7.0.0"
   },
   "devDependencies": {
-    "@rollup/plugin-node-resolve" : "^15.2.3",
-    "@rollup/plugin-replace": "^5.0.5",
-    "@rollup/plugin-typescript": "^11.1.6",
-    "@typhonjs-typedoc/typedoc-pkg": "^0.0.2",
+    "@rollup/plugin-node-resolve" : "^15.3.0",
+    "@rollup/plugin-replace": "^6.0.1",
+    "@rollup/plugin-typescript": "^12.1.0",
+    "@typhonjs-build-test/esm-d-ts" : "^0.3.0-next.8",
+    "@typhonjs-typedoc/typedoc-pkg": "^0.1.1",
     "@typhonjs-utils/unicode": "^0.1.0",
-    "@types/node": "^20.11.0",
-    "@vitest/coverage-v8": "^1.1.3",
-    "@vitest/ui": "^1.1.3",
-    "rollup": "^4.9.5",
-    "rollup-plugin-dts": "^6.1.0",
+    "@types/node": "^22.7.5",
+    "@vitest/coverage-v8": "^2.1.2",
+    "@vitest/ui": "^2.1.2",
+    "rollup": "^4.24.0",
     "trie-search": "^2.0.0",
-    "tslib": "^2.6.2",
-    "svelte": "^4.2.8",
-    "typescript" : "^5.3.3",
-    "vitest": "^1.2.0"
+    "tslib": "^2.7.0",
+    "svelte": "^4.2.19",
+    "typescript" : "^5.6.2",
+    "vitest": "^2.1.2"
   },
   "files": [
     "/dist",
@@ -74,7 +74,7 @@
   "apidocs": "https://typhonjs-svelte.github.io/trie-search/",
   "scripts": {
     "build": "rollup -c",
-    "docs": "typedoc-pkg --api-link esm --export typedoc --loglevel verbose",
+    "docs": "typedoc-pkg --api-link es --loglevel verbose",
     "eslint": "eslint .",
     "prepublishOnly": "npm run build && npm run test",
     "test": "vitest --coverage",
